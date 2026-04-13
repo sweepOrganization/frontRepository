@@ -12,41 +12,36 @@
 <table align="center">
   <tr>
     <td align="center" width="100">
-      <img src="https://skillicons.dev/icons?i=react" width="48" height="48" alt="React" /><br />
+      <img src="https://cdn.jsdelivr.net/npm/simple-icons@14/icons/react.svg" width="48" height="48" alt="React" /><br />
       <b>React</b>
     </td>
     <td align="center" width="100">
-      <img src="https://skillicons.dev/icons?i=ts" width="48" height="48" alt="TypeScript" /><br />
+      <img src="https://cdn.jsdelivr.net/npm/simple-icons@14/icons/typescript.svg" width="48" height="48" alt="TypeScript" /><br />
       <b>TypeScript</b>
     </td>
     <td align="center" width="100">
-      <img src="https://skillicons.dev/icons?i=vite" width="48" height="48" alt="Vite" /><br />
+      <img src="https://cdn.jsdelivr.net/npm/simple-icons@14/icons/vite.svg" width="48" height="48" alt="Vite" /><br />
       <b>Vite</b>
     </td>
     <td align="center" width="100">
-      <img src="https://skillicons.dev/icons?i=tailwind" width="48" height="48" alt="Tailwind CSS" /><br />
+      <img src="https://cdn.jsdelivr.net/npm/simple-icons@14/icons/tailwindcss.svg" width="48" height="48" alt="Tailwind CSS" /><br />
       <b>Tailwind CSS</b>
     </td>
   </tr>
   <tr>
-    <td colspan="4" align="center">
-      <table align="center">
-        <tr>
-          <td align="center" width="100">
-            <img src="https://skillicons.dev/icons?i=reactquery" width="48" height="48" alt="TanStack Query" /><br />
-            <b>TanStack Query</b>
-          </td>
-          <td align="center" width="100">
-            <img src="https://skillicons.dev/icons?i=zustand" width="48" height="48" alt="Zustand" /><br />
-            <b>Zustand</b>
-          </td>
-          <td align="center" width="100">
-            <img src="https://skillicons.dev/icons?i=storybook" width="48" height="48" alt="Storybook" /><br />
-            <b>Storybook</b>
-          </td>
-        </tr>
-      </table>
+    <td align="center" width="100">
+      <img src="https://cdn.jsdelivr.net/npm/simple-icons@14/icons/reactquery.svg" width="48" height="48" alt="TanStack Query" /><br />
+      <b>TanStack Query</b>
     </td>
+    <td align="center" width="100">
+      <img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/zustand/zustand-original.svg" width="48" height="48" alt="Zustand" /><br />
+      <b>Zustand</b>
+    </td>
+    <td align="center" width="100">
+      <img src="https://cdn.jsdelivr.net/npm/simple-icons@14/icons/storybook.svg" width="48" height="48" alt="Storybook" /><br />
+      <b>Storybook</b>
+    </td>
+    <td align="center" width="100"></td>
   </tr>
 </table>
 
