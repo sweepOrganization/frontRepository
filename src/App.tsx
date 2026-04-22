@@ -1,10 +1,14 @@
+import { Route, Routes } from "react-router-dom";
 import "./App.css";
+import PushTestPage from "./pages/PushTestPage";
+import HomePage from "./pages/HomePage";
 
 function App() {
   return (
-    <>
-      <h1 className="text-3xl font-bold underline">test</h1>
-    </>
+    <Routes>
+      <Route path="/" element={<HomePage />} />
+      <Route path="/push-test" element={<PushTestPage />} />
+    </Routes>
   );
 }
 
