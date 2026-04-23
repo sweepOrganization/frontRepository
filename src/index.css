@@ -1,3 +1,44 @@
+:root {
+  /* 기본 지하철 노선 */
+  --line-1: #263C96;
+  --line-2: #3CB44A;
+  --line-3: #F06E00;
+  --line-4: #2C9EDE;
+  --line-5: #8936E0;
+  --line-6: #B5500B;
+  --line-7: #697215;
+  --line-8: #E51E6E;
+  --line-9: #D1A62C;
+
+  /* 기타 노선 */
+  --line-airport: #73B6E4;        /* 공항 */
+  --line-gyeongui: #76BC9E;       /* 경의중앙 */
+  --line-gyeongchun: #08AF7B;     /* 경춘 */
+  --line-su-in-bundang: #EBA900;  /* 수인분당 */
+  --line-sinbundang: #A71E31;     /* 신분당 */
+  --line-gyeonggang: #2673F2;     /* 경강 */
+  --line-seohae: #8BC53F;         /* 서해 */
+  --line-incheon-1: #6F99D0;      /* 인천1 */
+  --line-incheon-2: #F4AB3E;      /* 인천2 */
+  --line-ever: #77C371;           /* 에버라인 */
+  --line-uijeongbu: #FF9D27;      /* 의정부 */
+  --line-ui-sinseol: #C6C100;     /* 우이신설 */
+  --line-gimpo-gold: #96710A;     /* 김포골드 */
+  --line-sillim: #4E67A5;         /* 신림 */
+  --line-gtx-a: #905A89;          /* GTX-A */
+
+  /* 버스 종류 */
+  --bus-green: #59BE0A;   /* 지선버스 */
+  --bus-blue: #1E7BDB;    /* 간선버스 */
+  --bus-navy: #404D93;    /* 심야/광역 계열 */
+  --bus-yellow: #D8A500;  /* 순환버스 */
+  --bus-red: #FF5B5B;     /* 광역버스 */
+  --bus-gray: #505050;    /* 공항/일반/기타 */
+  --bus-sky: #65A6D2;     /* 마을버스 */
+}
+
+
+
 /* 전체 배경 영역 */
 body {
   margin: 0;
