@@ -1,0 +1,21 @@
+/* 전체 배경 영역 */
+body {
+  margin: 0;
+  background: #f5f5f5; /* 양옆 여백 색 */
+}
+/* 앱 루트(모바일 프레임) */
+#root {
+  width: 100%;
+  max-width: 500px;
+  min-height: 100vh;
+  margin: 0 auto; /* PC에서 가운데 정렬 */
+  background: #ffffff; /* 실제 앱 배경 */
+}
+
+/* 기본 타이포 마진 리셋 */
+h1,
+h2,
+h3,
+p {
+  margin: 0;
+}
