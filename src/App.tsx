@@ -18,8 +18,8 @@ function App() {
       <Route element={<Layout />}>
         <Route path="/" element={<RootPage />} />
         <Route path="/push-test" element={<PushTestPage />} />
+        <Route path="/login" element={<LoginPage />} />
       </Route>
-      <Route path="/login" element={<LoginPage />} />
       <Route path="/oauth2/callback" element={<OAuthCallbackPage />} />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
