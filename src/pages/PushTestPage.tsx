@@ -1,23 +1,33 @@
 import { onMessage } from "firebase/messaging";
 import { useEffect } from "react";
-import { requestPermissionAndGetToken } from "../lib/fcm";
+import useGetFcmTokenMutation from "../hooks/mutations/useGetFcmTokenMutation";
+import usePostFcmTokenMutation from "../hooks/mutations/usePostFcmTokenMutation";
 import { messaging } from "../lib/firebase";
-export default function PushTestPage() {
-  const handleGetToken = async () => {
-    const token = await requestPermissionAndGetToken();
-    if (!token) return;
-    const response = await fetch(
-      `${import.meta.env.VITE_API_BASE_URL}/fcm/token`,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ token }),
-      },
-    );
-    const data = await response.json();
 
-    console.log("받은 응답 =", data);
+export default function PushTestPage() {
+  const { getFcmToken } = useGetFcmTokenMutation();
+  const { mutate: postFcmToken } = usePostFcmTokenMutation();
+
+  const handleGetToken = () => {
+    getFcmToken({
+      onSuccess: (token) => {
+        if (!token) return;
+
+        postFcmToken(token, {
+          onSuccess: () => {
+            console.log("FCM 토큰 전송에 성공했습니다.");
+          },
+          onError: (error) => {
+            console.error("FCM 토큰 전송에 실패했습니다:", error);
+          },
+        });
+      },
+      onError: (error) => {
+        console.error("FCM 토큰 발급에 실패했습니다:", error);
+      },
+    });
   };
+
   useEffect(() => {
     const unsubscribe = onMessage(messaging, (payload) => {
       console.log("포그라운드 알림:", payload);
