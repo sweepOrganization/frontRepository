@@ -5,15 +5,13 @@ export const requestPermissionAndGetToken = async () => {
   const permission = await Notification.requestPermission();
 
   if (permission !== "granted") {
-    console.log("알림 거부됨");
-    return;
+    return null;
   }
 
   const token = await getToken(messaging, {
     vapidKey: import.meta.env.VITE_FIREBASE_VAPID_KEY,
   });
 
-  console.log("FCM 토큰:", token);
-
+  console.log("FCM token:", token);
   return token;
 };

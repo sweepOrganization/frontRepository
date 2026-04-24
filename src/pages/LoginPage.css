@@ -1,0 +1,47 @@
+
+/* 버튼 커스텀 */
+.login-container {
+  width: 100%;
+  padding: 0 20px; /* 양옆 여백 */
+  box-sizing: border-box;
+}
+
+.button-group {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+/* 공통 버튼 */
+.kakao-btn,
+.google-btn {
+  height: 62px;
+  border-radius: 10px;
+  border: none;
+  font-size: 17px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center; /* 가운데 정렬 */
+  gap: 10px; /* 아이콘-텍스트 간격 */
+  cursor: pointer;
+}
+
+/* 카카오 */
+.kakao-btn {
+  background: #fee500;
+  color: #191919;
+}
+
+/* 구글 */
+.google-btn {
+  background: #e9e9e9;
+  color: #191919;
+}
+
+/* 아이콘 크기 */
+.kakao-icon,
+.google-icon {
+  width: 24px;
+  height: 24px;
+}
