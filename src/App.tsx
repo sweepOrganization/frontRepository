@@ -4,6 +4,8 @@ import HomePage from "./pages/HomePage";
 import LoginPage from "./pages/LoginPage";
 import OAuthCallbackPage from "./pages/OAuthCallbackPage";
 import PushTestPage from "./pages/PushTestPage";
+import StartPage from "./pages/StartPage";
+import NotificationSettingPage from "./pages/NotificationSettingPage";
 
 function RootPage() {
   const token = localStorage.getItem("accessToken");
@@ -15,6 +17,11 @@ function App() {
   return (
     <Routes>
       <Route path="/" element={<RootPage />} />
+      <Route path="/start" element={<StartPage />} />
+      <Route
+        path="/notification-setting"
+        element={<NotificationSettingPage />}
+      />
       <Route path="/push-test" element={<PushTestPage />} />
       <Route path="/login" element={<LoginPage />} />
       <Route path="/oauth2/callback" element={<OAuthCallbackPage />} />
