@@ -6,6 +6,7 @@ export default function LoginPage() {
     window.location.href =
       "https://sweepmap.duckdns.org/oauth2/authorization/kakao";
   };
+
   const handleGoogleLogin = () => {
     window.location.href =
       "https://sweepmap.duckdns.org/oauth2/authorization/google";
@@ -57,7 +58,6 @@ export default function LoginPage() {
         </div>
 
         <h2 className="slide-title">{slides[currentIndex].title}</h2>
-
         <p className="slide-desc">{slides[currentIndex].desc}</p>
 
         <div className="dots">
