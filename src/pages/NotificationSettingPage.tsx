@@ -125,7 +125,14 @@ export default function NotificationSettingPage() {
         <div className="relative overflow-hidden rounded-[12px] border border-[#e4e4e4] bg-white [&_*]:!border-t-0 [&_*]:!border-b-0 [&_*]:!shadow-none">
           <div className="absolute top-1/2 right-[24px] left-[24px] h-[44px] -translate-y-1/2 rounded-full bg-[#eff9f1]" />
 
-          <Picker value={time} onChange={setTime} height={220} itemHeight={44}>
+          <Picker
+            value={time}
+            onChange={(value) =>
+              setTime(value as { period: string; hour: string; minute: string })
+            }
+            height={220}
+            itemHeight={44}
+          >
             <Picker.Column name="period">
               {["오후", "오전"].map((item) => (
                 <Picker.Item key={item} value={item}>
