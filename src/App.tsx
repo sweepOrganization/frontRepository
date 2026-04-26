@@ -3,6 +3,7 @@ import "./App.css";
 import HomePage from "./pages/HomePage";
 import LoginPage from "./pages/LoginPage";
 import OAuthCallbackPage from "./pages/OAuthCallbackPage";
+import StartPage from "./pages/StartPage";
 import PushTestPage from "./pages/PushTestPage";
 
 function RootPage() {
@@ -15,6 +16,7 @@ function App() {
   return (
     <Routes>
       <Route path="/" element={<RootPage />} />
+      <Route path="/start" element={<StartPage />} />
       <Route path="/push-test" element={<PushTestPage />} />
       <Route path="/login" element={<LoginPage />} />
       <Route path="/oauth2/callback" element={<OAuthCallbackPage />} />
