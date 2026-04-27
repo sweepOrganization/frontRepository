@@ -41,6 +41,13 @@ function getDurationParts(totalMinutes: number): DurationPart[] {
   return parts;
 }
 
+function getSegmentsTotalMinutes(segments: Segment[]) {
+  return segments.reduce((sum, segment) => {
+    const sectionTime = Number(segment.sectionTime ?? 0);
+    return sum + (Number.isFinite(sectionTime) ? Math.max(0, sectionTime) : 0);
+  }, 0);
+}
+
 type Segment = {
   sectionTime?: number;
   trafficType?: number;
@@ -128,12 +135,16 @@ export default function NotificationSetting3Page() {
         </div>
 
         <div className="flex flex-col gap-[10px]">
-          {trafficResponseList.map(({ routeId, totalTime = 0, segments = [] }, index) => {
+          {trafficResponseList.map(({ routeId, segments = [] }, index) => {
             const isSelected = selectedIndex === index;
             const recommendedDepartureTime =
               boardingInfos[index]?.recommendedDepartureTime ?? "00:00:00";
-            const arrivalTime = addMinutesToTime(recommendedDepartureTime, totalTime);
-            const durationParts = getDurationParts(totalTime);
+            const segmentsTotalMinutes = getSegmentsTotalMinutes(segments);
+            const arrivalTime = addMinutesToTime(
+              recommendedDepartureTime,
+              segmentsTotalMinutes,
+            );
+            const durationParts = getDurationParts(segmentsTotalMinutes);
 
             return (
               <div
