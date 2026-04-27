@@ -1,4 +1,3 @@
-import "./NotificationStep2Page.css";
 import { useState } from "react";
 
 export default function NotificationStep2Page() {
