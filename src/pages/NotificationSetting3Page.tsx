@@ -1,8 +1,9 @@
 import { useState } from "react";
+import type { PathType } from "../api/SearchRoute";
 import RouteBar from "../components/route/RouteBar";
 import useSearchRouteQuery from "../hooks/queries/useSearchRouteQuery";
 
-//HH:mm형식의 시간 문자열에 분 단위를 더해 같은 형식으로 반환합니다.
+// HH:mm 형식 시간 문자열에 분을 더합니다.
 function addMinutesToTime(time: string, minutesToAdd: number) {
   const [hours, minutes, seconds] = time.split(":").map(Number);
   const totalMinutes = hours * 60 + minutes + minutesToAdd;
@@ -12,7 +13,7 @@ function addMinutesToTime(time: string, minutesToAdd: number) {
   return `${String(nextHours).padStart(2, "0")}:${String(nextMinutes).padStart(2, "0")}:${String(seconds ?? 0).padStart(2, "0")}`;
 }
 
-//시간을 오전/오후 h:mm 형태의 한국어 시간 문자열로 변환합니다.
+// 시간을 오전/오후 h:mm 형식으로 변환합니다.
 function formatKoreanTime(time: string) {
   const [hoursRaw, minutesRaw] = time.split(":");
   const hours = Number(hoursRaw);
@@ -25,7 +26,7 @@ function formatKoreanTime(time: string) {
 
 type DurationPart = { value: number; unit: "시간" | "분" };
 
-// 총 분(minutes)을 [숫자 + 시간/분 단위] 배열로 분해합니다.
+// 총 분을 [숫자 + 시간/분 단위] 배열로 분해합니다.
 function getDurationParts(totalMinutes: number): DurationPart[] {
   const safeMinutes = Math.max(0, totalMinutes);
   const hours = Math.floor(safeMinutes / 60);
@@ -51,7 +52,7 @@ type Segment = {
 };
 
 type TrafficResponse = {
-  routeId: number;
+  routeId?: number | null;
   totalTime?: number;
   segments?: Segment[];
 };
@@ -61,14 +62,23 @@ type BoardingInfo = {
 };
 
 export default function NotificationSetting3Page() {
+  const [selectedPathType, setSelectedPathType] =
+    useState<PathType>("PATH_TYPE_SUBWAY");
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
 
-  const { data: routeData } = useSearchRouteQuery();
+  const subwayQuery = useSearchRouteQuery("PATH_TYPE_SUBWAY");
+  const busQuery = useSearchRouteQuery("PATH_TYPE_BUS");
+  const routeData =
+    selectedPathType === "PATH_TYPE_SUBWAY" ? subwayQuery.data : busQuery.data;
+
   const trafficResponseList: TrafficResponse[] =
     routeData?.data?.trafficResponseList ?? [];
   const boardingInfos: BoardingInfo[] = routeData?.data?.boardingInfos ?? [];
+
   const selectedRouteId =
-    selectedIndex !== null ? trafficResponseList[selectedIndex]?.routeId : null;
+    selectedIndex !== null
+      ? (trafficResponseList[selectedIndex]?.routeId ?? null)
+      : null;
   const hasSelection = selectedIndex !== null;
 
   return (
@@ -85,6 +95,38 @@ export default function NotificationSetting3Page() {
             출발-도착지의 경로를 선택해주세요.
           </span>
         </div>
+
+        <div className="mb-3 grid h-11 grid-cols-2 rounded-[10px] bg-[#f2f2f2] p-1">
+          <button
+            type="button"
+            onClick={() => {
+              setSelectedPathType("PATH_TYPE_SUBWAY");
+              setSelectedIndex(null);
+            }}
+            className={`rounded-[8px] text-[14px] font-semibold ${
+              selectedPathType === "PATH_TYPE_SUBWAY"
+                ? "bg-white text-black"
+                : "text-(--DarkGray)"
+            }`}
+          >
+            지하철
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              setSelectedPathType("PATH_TYPE_BUS");
+              setSelectedIndex(null);
+            }}
+            className={`rounded-[8px] text-[14px] font-semibold ${
+              selectedPathType === "PATH_TYPE_BUS"
+                ? "bg-white text-black"
+                : "text-(--DarkGray)"
+            }`}
+          >
+            버스
+          </button>
+        </div>
+
         <div className="flex flex-col gap-[10px]">
           {trafficResponseList.map(
             ({ routeId, totalTime = 0, segments = [] }, index) => {
@@ -99,7 +141,7 @@ export default function NotificationSetting3Page() {
 
               return (
                 <div
-                  key={`route-${index}-${routeId ?? "null"}-${recommendedDepartureTime}`}
+                  key={`route-${index}-${String(routeId)}-${recommendedDepartureTime}`}
                   onClick={() => {
                     setSelectedIndex((prev) => (prev === index ? null : index));
                   }}
@@ -138,7 +180,7 @@ export default function NotificationSetting3Page() {
 
       <div>
         <div className="h-1.5 w-full rounded-full bg-[#e4e4e4]">
-          <div className="h-full w-3/5 rounded-full bg-(--GreenNormal)" />
+          <div className="h-full w-3/4 rounded-full bg-(--GreenNormal)" />
         </div>
         <button
           type="button"

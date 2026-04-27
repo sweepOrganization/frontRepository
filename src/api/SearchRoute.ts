@@ -1,8 +1,11 @@
-export async function searchRoute() {
+export type PathType = "PATH_TYPE_SUBWAY" | "PATH_TYPE_BUS";
+
+export async function searchRoute(pathType: PathType) {
   const accessToken = localStorage.getItem("accessToken");
 
   const response = await fetch(
-    `${import.meta.env.VITE_API_BASE_URL}/route/boarding?arrivalTime=2026-04-29T13:00:00&startLat=126.867911&startLon=37.47605&endLat=126.8536674&endLon=37.3076926&type=PATH_TYPE_SUBWAY`,
+    // 임시 테스트 코드
+    `${import.meta.env.VITE_API_BASE_URL}/route/boarding?arrivalTime=2026-04-29T13:00:00&startLat=126.867911&startLon=37.47605&endLat=126.8536674&endLon=37.3076926&type=${pathType}`,
     {
       method: "GET",
       headers: {
@@ -11,6 +14,7 @@ export async function searchRoute() {
       },
     },
   );
+
   const data = await response.json();
   return data;
 }
