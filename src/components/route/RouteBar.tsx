@@ -7,6 +7,8 @@ type RouteBarProps = {
     subwayCode?: number;
     busNo?: string;
     busType?: number;
+    startStop?: string;
+    endStop?: string;
   }>;
 };
 
@@ -31,7 +33,7 @@ function getSubwayColorClass(subwayCode?: number, lineName?: string) {
   if (lineName?.includes("공항")) return "bg-(--line-airport)";
   if (lineName?.includes("경의중앙")) return "bg-(--line-gyeongui)";
   if (lineName?.includes("경춘")) return "bg-(--line-gyeongchun)";
-  if (lineName?.includes("수인분당")) return "bg-(--line-su-in-bundang)";
+  if (lineName?.includes("수인.분당")) return "bg-(--line-su-in-bundang)";
   if (lineName?.includes("신분당")) return "bg-(--line-sinbundang)";
   if (lineName?.includes("경강")) return "bg-(--line-gyeonggang)";
   if (lineName?.includes("서해")) return "bg-(--line-seohae)";
@@ -48,30 +50,20 @@ function getSubwayColorClass(subwayCode?: number, lineName?: string) {
 }
 
 function getBusColorClass(busType?: number) {
-  // 확실하지 않은 색상 추후 변경 필요
   const busColorClassMap: Record<number, string> = {
-    1: "bg-(--bus-gray)", // 일반
-    2: "bg-(--bus-red)", // 광역
-    3: "bg-(--bus-sky)", // 마을
-    4: "bg-(--bus-red)", // 직행좌석(광역 계열)
-    5: "bg-(--bus-gray)", // 공항
-    6: "bg-(--bus-blue)", // 간선
-    10: "bg-(--bus-gray)", // 외곽
-    11: "bg-(--bus-blue)", // 간선(세종)
-    12: "bg-(--bus-green)", // 지선
-    13: "bg-(--bus-yellow)", // 순환
-    14: "bg-(--bus-red)", // 광역
-    15: "bg-(--bus-navy)", // 급행/심야 계열
-    16: "bg-(--bus-blue)", // 간선급행
-    20: "bg-(--bus-gray)", // 농어촌
-    22: "bg-(--bus-sky)", // 마을버스
-    26: "bg-(--bus-blue)", // 급행간선
+    1: "bg-(--bus-green)", //일반
+    3: "bg-(--bus-green)", //마을
+    4: "bg-(--bus-red)", //직행좌석
+    5: "bg-(--bus-sky)", //공항
+    11: "bg-(--bus-blue)", //간선
+    12: "bg-(--bus-green)", //지선
+    14: "bg-(--bus-red)", //광역
   };
 
   if (typeof busType === "number" && busColorClassMap[busType]) {
     return busColorClassMap[busType];
   }
-  //버스색 예외처리
+
   return "bg-(--bus-gray)";
 }
 
@@ -102,13 +94,32 @@ export default function RouteBar({ segments }: RouteBarProps) {
     return sectionTime > 0;
   });
 
-  // API 값 이슈로 모두 필터링되는 경우를 대비해 fallback 렌더링
-  const renderSegments =
+  const originalSegments =
     visibleSegments.length > 0 ? visibleSegments : normalizedSegments;
+
+  // 같은 출발/도착 정류장으로 가는 연속 버스 대안은 경로바에서 1개만 표시
+  const deduplicatedSegments = originalSegments.filter((segment, index) => {
+    if (segment.trafficType !== 2) {
+      return true;
+    }
+
+    const prev = originalSegments[index - 1];
+    if (!prev || prev.trafficType !== 2) {
+      return true;
+    }
+
+    const hasSameStops =
+      Boolean(segment.startStop) &&
+      Boolean(segment.endStop) &&
+      segment.startStop === prev.startStop &&
+      segment.endStop === prev.endStop;
+
+    return !hasSameStops;
+  });
 
   return (
     <div className="flex items-center">
-      {renderSegments.map((segment, index) => {
+      {deduplicatedSegments.map((segment, index) => {
         const currentSectionTime = segment.sectionTime ?? 0;
         const segmentColorClass = getSegmentColorClass(segment);
         const flexGrow = Math.max(currentSectionTime, 1);

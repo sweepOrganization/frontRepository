@@ -48,6 +48,27 @@ function getSegmentsTotalMinutes(segments: Segment[]) {
   }, 0);
 }
 
+function getDeduplicatedSegments(segments: Segment[]) {
+  return segments.filter((segment, index) => {
+    if (segment.trafficType !== 2) {
+      return true;
+    }
+
+    const prev = segments[index - 1];
+    if (!prev || prev.trafficType !== 2) {
+      return true;
+    }
+
+    const hasSameStops =
+      Boolean(segment.startStop) &&
+      Boolean(segment.endStop) &&
+      segment.startStop === prev.startStop &&
+      segment.endStop === prev.endStop;
+
+    return !hasSameStops;
+  });
+}
+
 type Segment = {
   sectionTime?: number;
   trafficType?: number;
@@ -55,6 +76,8 @@ type Segment = {
   subwayCode?: number;
   busNo?: string;
   busType?: number;
+  startStop?: string;
+  endStop?: string;
 };
 
 type TrafficResponse = {
@@ -93,7 +116,7 @@ export default function NotificationSetting3Page() {
       className="flex h-screen flex-col"
       data-selected-route-id={selectedRouteId ?? undefined}
     >
-      <div className="mx-4 mt-[14px] flex flex-1 flex-col overflow-y-auto pb-6">
+      <div className="mx-4 mt-[14px] flex flex-1 flex-col overflow-y-auto pb-6 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
         <div className="mb-[45px] flex h-16 flex-col gap-[4px]">
           <span className="text-[23px] leading-[34px] font-bold">
             어떤 경로로 가시나요?
@@ -103,14 +126,14 @@ export default function NotificationSetting3Page() {
           </span>
         </div>
 
-        <div className="mb-3 grid h-11 grid-cols-2 rounded-[10px] bg-[#f2f2f2] p-1">
+        <div className="mb-3 grid h-[44px] grid-cols-2 rounded-[10px] bg-[#f2f2f2] p-1">
           <button
             type="button"
             onClick={() => {
               setSelectedPathType("PATH_TYPE_SUBWAY");
               setSelectedIndex(null);
             }}
-            className={`rounded-[8px] text-[14px] font-semibold ${
+            className={`h-[36px] w-full appearance-none rounded-[8px] border-0 p-0 text-[14px] leading-[14px] font-semibold ${
               selectedPathType === "PATH_TYPE_SUBWAY"
                 ? "bg-white text-black"
                 : "text-(--DarkGray)"
@@ -124,7 +147,7 @@ export default function NotificationSetting3Page() {
               setSelectedPathType("PATH_TYPE_BUS");
               setSelectedIndex(null);
             }}
-            className={`rounded-[8px] text-[14px] font-semibold ${
+            className={`h-[36px] w-full appearance-none rounded-[8px] border-0 p-0 text-[14px] leading-[14px] font-semibold ${
               selectedPathType === "PATH_TYPE_BUS"
                 ? "bg-white text-black"
                 : "text-(--DarkGray)"
@@ -139,7 +162,9 @@ export default function NotificationSetting3Page() {
             const isSelected = selectedIndex === index;
             const recommendedDepartureTime =
               boardingInfos[index]?.recommendedDepartureTime ?? "00:00:00";
-            const segmentsTotalMinutes = getSegmentsTotalMinutes(segments);
+            const deduplicatedSegments = getDeduplicatedSegments(segments);
+            const segmentsTotalMinutes =
+              getSegmentsTotalMinutes(deduplicatedSegments);
             const arrivalTime = addMinutesToTime(
               recommendedDepartureTime,
               segmentsTotalMinutes,
@@ -177,7 +202,7 @@ export default function NotificationSetting3Page() {
                   {formatKoreanTime(recommendedDepartureTime)} -{" "}
                   {formatKoreanTime(arrivalTime)}
                 </div>
-                <RouteBar segments={segments} />
+                <RouteBar segments={deduplicatedSegments} />
               </div>
             );
           })}
