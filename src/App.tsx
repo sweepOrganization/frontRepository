@@ -3,6 +3,7 @@ import "./App.css";
 import HomePage from "./pages/HomePage";
 import LoginPage from "./pages/LoginPage";
 import OAuthCallbackPage from "./pages/OAuthCallbackPage";
+import NotificationStep2Page from "./pages/NotificationStep2Page";
 import PushTestPage from "./pages/PushTestPage";
 
 function RootPage() {
@@ -17,6 +18,7 @@ function App() {
       <Route path="/" element={<RootPage />} />
       <Route path="/push-test" element={<PushTestPage />} />
       <Route path="/login" element={<LoginPage />} />
+      <Route path="/notification-step2" element={<NotificationStep2Page />} />
       <Route path="/oauth2/callback" element={<OAuthCallbackPage />} />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
