@@ -128,48 +128,53 @@ export default function NotificationSetting3Page() {
         </div>
 
         <div className="flex flex-col gap-[10px]">
-          {trafficResponseList.map(({ routeId, totalTime = 0, segments = [] }, index) => {
-            const isSelected = selectedIndex === index;
-            const recommendedDepartureTime =
-              boardingInfos[index]?.recommendedDepartureTime ?? "00:00:00";
-            const arrivalTime = addMinutesToTime(recommendedDepartureTime, totalTime);
-            const durationParts = getDurationParts(totalTime);
+          {trafficResponseList.map(
+            ({ routeId, totalTime = 0, segments = [] }, index) => {
+              const isSelected = selectedIndex === index;
+              const recommendedDepartureTime =
+                boardingInfos[index]?.recommendedDepartureTime ?? "00:00:00";
+              const arrivalTime = addMinutesToTime(
+                recommendedDepartureTime,
+                totalTime,
+              );
+              const durationParts = getDurationParts(totalTime);
 
-            return (
-              <div
-                key={`route-${index}-${String(routeId)}-${recommendedDepartureTime}`}
-                onClick={() => {
-                  setSelectedIndex((prev) => (prev === index ? null : index));
-                }}
-                className={`flex flex-col gap-3 rounded-[10px] border px-5 pt-[22px] pb-5 ${
-                  isSelected
-                    ? "h-[186px] border-(--GreenNormal)"
-                    : "h-[114px] border-gray-300"
-                }`}
-              >
-                <div className="flex h-[20px] items-end gap-1">
-                  {durationParts.map((part, partIndex) => (
-                    <div
-                      key={`duration-${index}-${partIndex}`}
-                      className="flex h-[20px] items-end"
-                    >
-                      <span className="text-[26px] leading-[20px] font-bold">
-                        {part.value}
-                      </span>
-                      <span className="relative top-px text-[17px] leading-[20px]">
-                        {part.unit}
-                      </span>
-                    </div>
-                  ))}
+              return (
+                <div
+                  key={`route-${index}-${String(routeId)}-${recommendedDepartureTime}`}
+                  onClick={() => {
+                    setSelectedIndex((prev) => (prev === index ? null : index));
+                  }}
+                  className={`flex flex-col gap-3 rounded-[10px] border px-5 pt-[22px] pb-5 ${
+                    isSelected
+                      ? "h-[186px] border-(--GreenNormal)"
+                      : "h-[114px] border-gray-300"
+                  }`}
+                >
+                  <div className="flex h-[20px] items-end gap-1">
+                    {durationParts.map((part, partIndex) => (
+                      <div
+                        key={`duration-${index}-${partIndex}`}
+                        className="flex h-[20px] items-end"
+                      >
+                        <span className="text-[26px] leading-[20px] font-bold">
+                          {part.value}
+                        </span>
+                        <span className="relative top-px text-[17px] leading-[20px]">
+                          {part.unit}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="text-[12px] text-(--Gray)">
+                    {formatKoreanTime(recommendedDepartureTime)} -{" "}
+                    {formatKoreanTime(arrivalTime)}
+                  </div>
+                  <RouteBar segments={segments} />
                 </div>
-                <div className="text-[12px] text-(--Gray)">
-                  {formatKoreanTime(recommendedDepartureTime)} -{" "}
-                  {formatKoreanTime(arrivalTime)}
-                </div>
-                <RouteBar segments={segments} />
-              </div>
-            );
-          })}
+              );
+            },
+          )}
         </div>
       </div>
 
