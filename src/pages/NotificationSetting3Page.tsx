@@ -3,7 +3,6 @@ import type { PathType } from "../api/SearchRoute";
 import RouteBar from "../components/route/RouteBar";
 import useSearchRouteQuery from "../hooks/queries/useSearchRouteQuery";
 
-// HH:mm 형식 시간 문자열에 분을 더합니다.
 function addMinutesToTime(time: string, minutesToAdd: number) {
   const [hours, minutes, seconds] = time.split(":").map(Number);
   const totalMinutes = hours * 60 + minutes + minutesToAdd;
@@ -13,7 +12,6 @@ function addMinutesToTime(time: string, minutesToAdd: number) {
   return `${String(nextHours).padStart(2, "0")}:${String(nextMinutes).padStart(2, "0")}:${String(seconds ?? 0).padStart(2, "0")}`;
 }
 
-// 시간을 오전/오후 h:mm 형식으로 변환합니다.
 function formatKoreanTime(time: string) {
   const [hoursRaw, minutesRaw] = time.split(":");
   const hours = Number(hoursRaw);
@@ -26,7 +24,6 @@ function formatKoreanTime(time: string) {
 
 type DurationPart = { value: number; unit: "시간" | "분" };
 
-// 총 분을 [숫자 + 시간/분 단위] 배열로 분해합니다.
 function getDurationParts(totalMinutes: number): DurationPart[] {
   const safeMinutes = Math.max(0, totalMinutes);
   const hours = Math.floor(safeMinutes / 60);
@@ -49,6 +46,8 @@ type Segment = {
   trafficType?: number;
   lineName?: string;
   subwayCode?: number;
+  busNo?: string;
+  busType?: number;
 };
 
 type TrafficResponse = {
@@ -68,6 +67,7 @@ export default function NotificationSetting3Page() {
 
   const subwayQuery = useSearchRouteQuery("PATH_TYPE_SUBWAY");
   const busQuery = useSearchRouteQuery("PATH_TYPE_BUS");
+
   const routeData =
     selectedPathType === "PATH_TYPE_SUBWAY" ? subwayQuery.data : busQuery.data;
 
@@ -128,53 +128,48 @@ export default function NotificationSetting3Page() {
         </div>
 
         <div className="flex flex-col gap-[10px]">
-          {trafficResponseList.map(
-            ({ routeId, totalTime = 0, segments = [] }, index) => {
-              const isSelected = selectedIndex === index;
-              const recommendedDepartureTime =
-                boardingInfos[index]?.recommendedDepartureTime ?? "00:00:00";
-              const arrivalTime = addMinutesToTime(
-                recommendedDepartureTime,
-                totalTime,
-              );
-              const durationParts = getDurationParts(totalTime);
+          {trafficResponseList.map(({ routeId, totalTime = 0, segments = [] }, index) => {
+            const isSelected = selectedIndex === index;
+            const recommendedDepartureTime =
+              boardingInfos[index]?.recommendedDepartureTime ?? "00:00:00";
+            const arrivalTime = addMinutesToTime(recommendedDepartureTime, totalTime);
+            const durationParts = getDurationParts(totalTime);
 
-              return (
-                <div
-                  key={`route-${index}-${String(routeId)}-${recommendedDepartureTime}`}
-                  onClick={() => {
-                    setSelectedIndex((prev) => (prev === index ? null : index));
-                  }}
-                  className={`flex flex-col gap-3 rounded-[10px] border px-5 pt-[22px] pb-5 ${
-                    isSelected
-                      ? "h-[186px] border-(--GreenNormal)"
-                      : "h-[114px] border-gray-300"
-                  }`}
-                >
-                  <div className="flex h-[20px] items-end gap-1">
-                    {durationParts.map((part, partIndex) => (
-                      <div
-                        key={`duration-${index}-${partIndex}`}
-                        className="flex h-[20px] items-end"
-                      >
-                        <span className="text-[26px] leading-[20px] font-bold">
-                          {part.value}
-                        </span>
-                        <span className="relative top-px text-[17px] leading-[20px]">
-                          {part.unit}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                  <div className="text-[12px] text-(--Gray)">
-                    {formatKoreanTime(recommendedDepartureTime)} -{" "}
-                    {formatKoreanTime(arrivalTime)}
-                  </div>
-                  <RouteBar segments={segments} />
+            return (
+              <div
+                key={`route-${index}-${String(routeId)}-${recommendedDepartureTime}`}
+                onClick={() => {
+                  setSelectedIndex((prev) => (prev === index ? null : index));
+                }}
+                className={`flex flex-col gap-3 rounded-[10px] border px-5 pt-[22px] pb-5 ${
+                  isSelected
+                    ? "h-[186px] border-(--GreenNormal)"
+                    : "h-[114px] border-gray-300"
+                }`}
+              >
+                <div className="flex h-[20px] items-end gap-1">
+                  {durationParts.map((part, partIndex) => (
+                    <div
+                      key={`duration-${index}-${partIndex}`}
+                      className="flex h-[20px] items-end"
+                    >
+                      <span className="text-[26px] leading-[20px] font-bold">
+                        {part.value}
+                      </span>
+                      <span className="relative top-px text-[17px] leading-[20px]">
+                        {part.unit}
+                      </span>
+                    </div>
+                  ))}
                 </div>
-              );
-            },
-          )}
+                <div className="text-[12px] text-(--Gray)">
+                  {formatKoreanTime(recommendedDepartureTime)} -{" "}
+                  {formatKoreanTime(arrivalTime)}
+                </div>
+                <RouteBar segments={segments} />
+              </div>
+            );
+          })}
         </div>
       </div>
 

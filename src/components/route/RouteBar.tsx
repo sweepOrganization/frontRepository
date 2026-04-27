@@ -10,7 +10,7 @@ type RouteBarProps = {
   }>;
 };
 
-function getSubwayColorClass(subwayCode?: number) {
+function getSubwayColorClass(subwayCode?: number, lineName?: string) {
   const subwayColorClassMap: Record<number, string> = {
     1: "bg-(--line-1)",
     2: "bg-(--line-2)",
@@ -21,11 +21,28 @@ function getSubwayColorClass(subwayCode?: number) {
     7: "bg-(--line-7)",
     8: "bg-(--line-8)",
     9: "bg-(--line-9)",
+    114: "bg-(--line-seohae)",
   };
 
   if (subwayCode && subwayColorClassMap[subwayCode]) {
     return subwayColorClassMap[subwayCode];
   }
+
+  if (lineName?.includes("공항")) return "bg-(--line-airport)";
+  if (lineName?.includes("경의중앙")) return "bg-(--line-gyeongui)";
+  if (lineName?.includes("경춘")) return "bg-(--line-gyeongchun)";
+  if (lineName?.includes("수인분당")) return "bg-(--line-su-in-bundang)";
+  if (lineName?.includes("신분당")) return "bg-(--line-sinbundang)";
+  if (lineName?.includes("경강")) return "bg-(--line-gyeonggang)";
+  if (lineName?.includes("서해")) return "bg-(--line-seohae)";
+  if (lineName?.includes("인천 1")) return "bg-(--line-incheon-1)";
+  if (lineName?.includes("인천 2")) return "bg-(--line-incheon-2)";
+  if (lineName?.includes("에버")) return "bg-(--line-ever)";
+  if (lineName?.includes("의정부")) return "bg-(--line-uijeongbu)";
+  if (lineName?.includes("우이")) return "bg-(--line-ui-sinseol)";
+  if (lineName?.includes("김포")) return "bg-(--line-gimpo-gold)";
+  if (lineName?.includes("신림")) return "bg-(--line-sillim)";
+  if (lineName?.includes("GTX-A")) return "bg-(--line-gtx-a)";
 
   return "bg-(--DarkGray)";
 }
@@ -64,7 +81,7 @@ function getSegmentColorClass(segment: RouteBarProps["segments"][number]) {
   }
 
   if (segment.trafficType === 1) {
-    return getSubwayColorClass(segment.subwayCode);
+    return getSubwayColorClass(segment.subwayCode, segment.lineName);
   }
 
   if (segment.trafficType === 2) {
@@ -75,14 +92,23 @@ function getSegmentColorClass(segment: RouteBarProps["segments"][number]) {
 }
 
 export default function RouteBar({ segments }: RouteBarProps) {
-  const visibleSegments = segments.filter((segment) => {
+  const normalizedSegments = segments.map((segment) => ({
+    ...segment,
+    sectionTime: Number(segment.sectionTime ?? 0),
+  }));
+
+  const visibleSegments = normalizedSegments.filter((segment) => {
     const sectionTime = segment.sectionTime ?? 0;
     return sectionTime > 0;
   });
 
+  // API 값 이슈로 모두 필터링되는 경우를 대비해 fallback 렌더링
+  const renderSegments =
+    visibleSegments.length > 0 ? visibleSegments : normalizedSegments;
+
   return (
     <div className="flex items-center">
-      {visibleSegments.map((segment, index) => {
+      {renderSegments.map((segment, index) => {
         const currentSectionTime = segment.sectionTime ?? 0;
         const segmentColorClass = getSegmentColorClass(segment);
         const flexGrow = Math.max(currentSectionTime, 1);
