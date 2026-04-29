@@ -3,14 +3,9 @@ import "./App.css";
 import HomePage from "./pages/HomePage";
 import LoginPage from "./pages/LoginPage";
 import NotificationSetting3Page from "./pages/NotificationSetting3Page";
+import NotificationSetting4Page from "./pages/NotificationSetting4Page";
 import OAuthCallbackPage from "./pages/OAuthCallbackPage";
 import PushTestPage from "./pages/PushTestPage";
-import NotificationSetting4Page from "./pages/NotificationSetting4Page";
-
-import NotificationSetting3Page from "./pages/NotificationSetting3Page";
-
-import NotificationSetting4Page from "./pages/NotificationSetting4Page";
-
 
 function RootPage() {
   const token = localStorage.getItem("accessToken");
@@ -28,14 +23,10 @@ function App() {
         element={<NotificationSetting3Page />}
       />
 
-
-
-
       <Route
         path="/notification-setting-4"
         element={<NotificationSetting4Page />}
       />
-
 
       <Route path="/login" element={<LoginPage />} />
       <Route path="/oauth2/callback" element={<OAuthCallbackPage />} />
