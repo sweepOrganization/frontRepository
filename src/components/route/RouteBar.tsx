@@ -9,6 +9,8 @@ type RouteBarProps = {
     busType?: number;
     startStop?: string;
     endStop?: string;
+
+
   }>;
 };
 
@@ -50,6 +52,7 @@ function getSubwayColorClass(subwayCode?: number, lineName?: string) {
 }
 
 function getBusColorClass(busType?: number) {
+
   const busColorClassMap: Record<number, string> = {
     1: "bg-(--bus-green)", //일반
     3: "bg-(--bus-green)", //마을
@@ -58,11 +61,16 @@ function getBusColorClass(busType?: number) {
     11: "bg-(--bus-blue)", //간선
     12: "bg-(--bus-green)", //지선
     14: "bg-(--bus-red)", //광역
+
   };
 
   if (typeof busType === "number" && busColorClassMap[busType]) {
     return busColorClassMap[busType];
   }
+
+
+
+  //버스색 예외처리
 
   return "bg-(--bus-gray)";
 }
@@ -94,6 +102,7 @@ export default function RouteBar({ segments }: RouteBarProps) {
     return sectionTime > 0;
   });
 
+
   const originalSegments =
     visibleSegments.length > 0 ? visibleSegments : normalizedSegments;
 
@@ -120,6 +129,15 @@ export default function RouteBar({ segments }: RouteBarProps) {
   return (
     <div className="flex items-center">
       {deduplicatedSegments.map((segment, index) => {
+
+  // API 값 이슈로 모두 필터링되는 경우를 대비해 fallback 렌더링
+  const renderSegments =
+    visibleSegments.length > 0 ? visibleSegments : normalizedSegments;
+
+  return (
+    <div className="flex items-center">
+      {renderSegments.map((segment, index) => {
+
         const currentSectionTime = segment.sectionTime ?? 0;
         const segmentColorClass = getSegmentColorClass(segment);
         const flexGrow = Math.max(currentSectionTime, 1);

@@ -116,7 +116,10 @@ export default function NotificationSetting3Page() {
       className="flex h-screen flex-col"
       data-selected-route-id={selectedRouteId ?? undefined}
     >
+
       <div className="mx-4 mt-[14px] flex flex-1 flex-col overflow-y-auto pb-6 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+     
+
         <div className="mb-[45px] flex h-16 flex-col gap-[4px]">
           <span className="text-[23px] leading-[34px] font-bold">
             어떤 경로로 가시나요?
@@ -126,7 +129,11 @@ export default function NotificationSetting3Page() {
           </span>
         </div>
 
-        <div className="mb-3 grid h-[44px] grid-cols-2 rounded-[10px] bg-[#f2f2f2] p-1">
+
+       
+
+        <div className="mb-3 grid h-11 grid-cols-2 rounded-[10px] bg-[#f2f2f2] p-1">
+
           <button
             type="button"
             onClick={() => {
