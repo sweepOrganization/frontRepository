@@ -1,7 +1,14 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import TimeBanner from "../components/Setting4Page/TimeBanner";
+import {
+  useSetAlarmChecklist,
+  useSetAlarmInterval,
+  useSetAlarmPrepareTime,
+} from "../stores/useAlarmStore";
 
 export default function NotificationSetting4Page() {
+  const navigate = useNavigate();
   const reminderOptions = [0, 5, 10, 15, 20];
   const [checklist, setChecklist] = useState("");
   const [selectedReminderMinutes, setSelectedReminderMinutes] = useState<
@@ -11,13 +18,25 @@ export default function NotificationSetting4Page() {
   const [minute, setMinute] = useState("");
   const [isHourFocused, setIsHourFocused] = useState(false);
   const [isMinuteFocused, setIsMinuteFocused] = useState(false);
+  const setPrepareTime = useSetAlarmPrepareTime();
+  const setInterval = useSetAlarmInterval();
+  const setAlarmChecklist = useSetAlarmChecklist();
+
+  const toNumber = (value: string) => {
+    const parsed = Number.parseInt(value, 10);
+    return Number.isNaN(parsed) ? 0 : parsed;
+  };
 
   const handleHourChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setHour(event.target.value);
+    const nextHour = event.target.value;
+    setHour(nextHour);
+    setPrepareTime(toNumber(nextHour) * 60 + toNumber(minute));
   };
 
   const handleMinuteChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setMinute(event.target.value);
+    const nextMinute = event.target.value;
+    setMinute(nextMinute);
+    setPrepareTime(toNumber(hour) * 60 + toNumber(nextMinute));
   };
 
   const handleChecklistChange = (
@@ -25,22 +44,30 @@ export default function NotificationSetting4Page() {
   ) => {
     const limitedByLength = event.target.value.slice(0, 24);
     const lines = limitedByLength.split("\n");
-    setChecklist(lines.slice(0, 2).join("\n"));
+    const normalized = lines.slice(0, 2).join("\n");
+    setChecklist(normalized);
+    setAlarmChecklist(normalized);
   };
 
   const handleReminderClick = (value: number) => {
     setSelectedReminderMinutes(value);
+    setInterval(value);
   };
+
+  const hasSelection =
+    hour.trim() !== "" &&
+    minute.trim() !== "" &&
+    selectedReminderMinutes !== null;
 
   return (
     <div className="flex h-screen flex-col">
       <div className="mx-4 mt-[14px] flex flex-1 flex-col overflow-y-auto pb-6">
         <div className="mb-[45px] flex h-16 flex-col gap-[4px]">
           <span className="text-[23px] leading-[34px] font-bold">
-            준비는 얼마나 걸리세요?
+            준비는 얼마나 걸리나요?
           </span>
           <span className="text-[17px] leading-[24px] text-(--DarkGray)">
-            준비에 필요한 시간을 입력해주세요
+            준비에 소요되는 시간을 입력해주세요
           </span>
         </div>
 
@@ -141,7 +168,13 @@ export default function NotificationSetting4Page() {
         </div>
         <button
           type="button"
-          className="h-[67px] w-full bg-(--GreenLight) text-[17px] font-bold text-[#b1d8b6]"
+          disabled={!hasSelection}
+          className={`h-[67px] w-full text-[17px] font-bold ${
+            !hasSelection
+              ? "bg-(--GreenLight) text-[#b1d8b6]"
+              : "bg-(--GreenNormal) text-white"
+          }`}
+          onClick={() => navigate("/notification-setting-5")}
         >
           최종 확인하기
         </button>

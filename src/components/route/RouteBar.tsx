@@ -52,6 +52,7 @@ function getSubwayColorClass(subwayCode?: number, lineName?: string) {
 function getBusColorClass(busType?: number) {
   const busColorClassMap: Record<number, string> = {
     1: "bg-(--bus-green)", //일반
+    2: "bg-(--bus-blue)", //좌석버스
     3: "bg-(--bus-green)", //마을
     4: "bg-(--bus-red)", //직행좌석
     5: "bg-(--bus-sky)", //공항
