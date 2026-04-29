@@ -7,8 +7,10 @@ type RouteBarProps = {
     subwayCode?: number;
     busNo?: string;
     busType?: number;
+
     startStop?: string;
     endStop?: string;
+
 
 
   }>;
@@ -35,7 +37,9 @@ function getSubwayColorClass(subwayCode?: number, lineName?: string) {
   if (lineName?.includes("공항")) return "bg-(--line-airport)";
   if (lineName?.includes("경의중앙")) return "bg-(--line-gyeongui)";
   if (lineName?.includes("경춘")) return "bg-(--line-gyeongchun)";
+
   if (lineName?.includes("수인.분당")) return "bg-(--line-su-in-bundang)";
+
   if (lineName?.includes("신분당")) return "bg-(--line-sinbundang)";
   if (lineName?.includes("경강")) return "bg-(--line-gyeonggang)";
   if (lineName?.includes("서해")) return "bg-(--line-seohae)";
@@ -53,6 +57,7 @@ function getSubwayColorClass(subwayCode?: number, lineName?: string) {
 
 function getBusColorClass(busType?: number) {
 
+
   const busColorClassMap: Record<number, string> = {
     1: "bg-(--bus-green)", //일반
     3: "bg-(--bus-green)", //마을
@@ -62,6 +67,7 @@ function getBusColorClass(busType?: number) {
     12: "bg-(--bus-green)", //지선
     14: "bg-(--bus-red)", //광역
 
+
   };
 
   if (typeof busType === "number" && busColorClassMap[busType]) {
@@ -70,7 +76,9 @@ function getBusColorClass(busType?: number) {
 
 
 
+
   //버스색 예외처리
+
 
   return "bg-(--bus-gray)";
 }
@@ -103,6 +111,7 @@ export default function RouteBar({ segments }: RouteBarProps) {
   });
 
 
+
   const originalSegments =
     visibleSegments.length > 0 ? visibleSegments : normalizedSegments;
 
@@ -130,6 +139,7 @@ export default function RouteBar({ segments }: RouteBarProps) {
     <div className="flex items-center">
       {deduplicatedSegments.map((segment, index) => {
 
+
   // API 값 이슈로 모두 필터링되는 경우를 대비해 fallback 렌더링
   const renderSegments =
     visibleSegments.length > 0 ? visibleSegments : normalizedSegments;
@@ -137,6 +147,8 @@ export default function RouteBar({ segments }: RouteBarProps) {
   return (
     <div className="flex items-center">
       {renderSegments.map((segment, index) => {
+
+
 
         const currentSectionTime = segment.sectionTime ?? 0;
         const segmentColorClass = getSegmentColorClass(segment);

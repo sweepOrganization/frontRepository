@@ -41,6 +41,7 @@ function getDurationParts(totalMinutes: number): DurationPart[] {
   return parts;
 }
 
+
 function getSegmentsTotalMinutes(segments: Segment[]) {
   return segments.reduce((sum, segment) => {
     const sectionTime = Number(segment.sectionTime ?? 0);
@@ -69,6 +70,7 @@ function getDeduplicatedSegments(segments: Segment[]) {
   });
 }
 
+
 type Segment = {
   sectionTime?: number;
   trafficType?: number;
@@ -76,8 +78,10 @@ type Segment = {
   subwayCode?: number;
   busNo?: string;
   busType?: number;
+
   startStop?: string;
   endStop?: string;
+
 };
 
 type TrafficResponse = {
@@ -117,8 +121,10 @@ export default function NotificationSetting3Page() {
       data-selected-route-id={selectedRouteId ?? undefined}
     >
 
+
       <div className="mx-4 mt-[14px] flex flex-1 flex-col overflow-y-auto pb-6 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
      
+
 
         <div className="mb-[45px] flex h-16 flex-col gap-[4px]">
           <span className="text-[23px] leading-[34px] font-bold">
@@ -128,6 +134,7 @@ export default function NotificationSetting3Page() {
             출발-도착지의 경로를 선택해주세요.
           </span>
         </div>
+
 
 
        
@@ -140,7 +147,9 @@ export default function NotificationSetting3Page() {
               setSelectedPathType("PATH_TYPE_SUBWAY");
               setSelectedIndex(null);
             }}
+
             className={`h-[36px] w-full appearance-none rounded-[8px] border-0 p-0 text-[14px] leading-[14px] font-semibold ${
+
               selectedPathType === "PATH_TYPE_SUBWAY"
                 ? "bg-white text-black"
                 : "text-(--DarkGray)"
@@ -154,7 +163,9 @@ export default function NotificationSetting3Page() {
               setSelectedPathType("PATH_TYPE_BUS");
               setSelectedIndex(null);
             }}
+
             className={`h-[36px] w-full appearance-none rounded-[8px] border-0 p-0 text-[14px] leading-[14px] font-semibold ${
+
               selectedPathType === "PATH_TYPE_BUS"
                 ? "bg-white text-black"
                 : "text-(--DarkGray)"
@@ -165,6 +176,7 @@ export default function NotificationSetting3Page() {
         </div>
 
         <div className="flex flex-col gap-[10px]">
+
           {trafficResponseList.map(({ routeId, segments = [] }, index) => {
             const isSelected = selectedIndex === index;
             const recommendedDepartureTime =
@@ -213,6 +225,7 @@ export default function NotificationSetting3Page() {
               </div>
             );
           })}
+
         </div>
       </div>
 
