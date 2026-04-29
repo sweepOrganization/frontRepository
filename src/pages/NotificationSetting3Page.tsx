@@ -41,6 +41,34 @@ function getDurationParts(totalMinutes: number): DurationPart[] {
   return parts;
 }
 
+function getSegmentsTotalMinutes(segments: Segment[]) {
+  return segments.reduce((sum, segment) => {
+    const sectionTime = Number(segment.sectionTime ?? 0);
+    return sum + (Number.isFinite(sectionTime) ? Math.max(0, sectionTime) : 0);
+  }, 0);
+}
+
+function getDeduplicatedSegments(segments: Segment[]) {
+  return segments.filter((segment, index) => {
+    if (segment.trafficType !== 2) {
+      return true;
+    }
+
+    const prev = segments[index - 1];
+    if (!prev || prev.trafficType !== 2) {
+      return true;
+    }
+
+    const hasSameStops =
+      Boolean(segment.startStop) &&
+      Boolean(segment.endStop) &&
+      segment.startStop === prev.startStop &&
+      segment.endStop === prev.endStop;
+
+    return !hasSameStops;
+  });
+}
+
 type Segment = {
   sectionTime?: number;
   trafficType?: number;
@@ -48,6 +76,8 @@ type Segment = {
   subwayCode?: number;
   busNo?: string;
   busType?: number;
+  startStop?: string;
+  endStop?: string;
 };
 
 type TrafficResponse = {
@@ -86,7 +116,10 @@ export default function NotificationSetting3Page() {
       className="flex h-screen flex-col"
       data-selected-route-id={selectedRouteId ?? undefined}
     >
-      <div className="mx-4 mt-[14px] flex flex-1 flex-col overflow-y-auto pb-6">
+
+      <div className="mx-4 mt-[14px] flex flex-1 flex-col overflow-y-auto pb-6 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+     
+
         <div className="mb-[45px] flex h-16 flex-col gap-[4px]">
           <span className="text-[23px] leading-[34px] font-bold">
             어떤 경로로 가시나요?
@@ -96,14 +129,18 @@ export default function NotificationSetting3Page() {
           </span>
         </div>
 
+
+       
+
         <div className="mb-3 grid h-11 grid-cols-2 rounded-[10px] bg-[#f2f2f2] p-1">
+
           <button
             type="button"
             onClick={() => {
               setSelectedPathType("PATH_TYPE_SUBWAY");
               setSelectedIndex(null);
             }}
-            className={`rounded-[8px] text-[14px] font-semibold ${
+            className={`h-[36px] w-full appearance-none rounded-[8px] border-0 p-0 text-[14px] leading-[14px] font-semibold ${
               selectedPathType === "PATH_TYPE_SUBWAY"
                 ? "bg-white text-black"
                 : "text-(--DarkGray)"
@@ -117,7 +154,7 @@ export default function NotificationSetting3Page() {
               setSelectedPathType("PATH_TYPE_BUS");
               setSelectedIndex(null);
             }}
-            className={`rounded-[8px] text-[14px] font-semibold ${
+            className={`h-[36px] w-full appearance-none rounded-[8px] border-0 p-0 text-[14px] leading-[14px] font-semibold ${
               selectedPathType === "PATH_TYPE_BUS"
                 ? "bg-white text-black"
                 : "text-(--DarkGray)"
@@ -128,53 +165,54 @@ export default function NotificationSetting3Page() {
         </div>
 
         <div className="flex flex-col gap-[10px]">
-          {trafficResponseList.map(
-            ({ routeId, totalTime = 0, segments = [] }, index) => {
-              const isSelected = selectedIndex === index;
-              const recommendedDepartureTime =
-                boardingInfos[index]?.recommendedDepartureTime ?? "00:00:00";
-              const arrivalTime = addMinutesToTime(
-                recommendedDepartureTime,
-                totalTime,
-              );
-              const durationParts = getDurationParts(totalTime);
+          {trafficResponseList.map(({ routeId, segments = [] }, index) => {
+            const isSelected = selectedIndex === index;
+            const recommendedDepartureTime =
+              boardingInfos[index]?.recommendedDepartureTime ?? "00:00:00";
+            const deduplicatedSegments = getDeduplicatedSegments(segments);
+            const segmentsTotalMinutes =
+              getSegmentsTotalMinutes(deduplicatedSegments);
+            const arrivalTime = addMinutesToTime(
+              recommendedDepartureTime,
+              segmentsTotalMinutes,
+            );
+            const durationParts = getDurationParts(segmentsTotalMinutes);
 
-              return (
-                <div
-                  key={`route-${index}-${String(routeId)}-${recommendedDepartureTime}`}
-                  onClick={() => {
-                    setSelectedIndex((prev) => (prev === index ? null : index));
-                  }}
-                  className={`flex flex-col gap-3 rounded-[10px] border px-5 pt-[22px] pb-5 ${
-                    isSelected
-                      ? "h-[186px] border-(--GreenNormal)"
-                      : "h-[114px] border-gray-300"
-                  }`}
-                >
-                  <div className="flex h-[20px] items-end gap-1">
-                    {durationParts.map((part, partIndex) => (
-                      <div
-                        key={`duration-${index}-${partIndex}`}
-                        className="flex h-[20px] items-end"
-                      >
-                        <span className="text-[26px] leading-[20px] font-bold">
-                          {part.value}
-                        </span>
-                        <span className="relative top-px text-[17px] leading-[20px]">
-                          {part.unit}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                  <div className="text-[12px] text-(--Gray)">
-                    {formatKoreanTime(recommendedDepartureTime)} -{" "}
-                    {formatKoreanTime(arrivalTime)}
-                  </div>
-                  <RouteBar segments={segments} />
+            return (
+              <div
+                key={`route-${index}-${String(routeId)}-${recommendedDepartureTime}`}
+                onClick={() => {
+                  setSelectedIndex((prev) => (prev === index ? null : index));
+                }}
+                className={`flex flex-col gap-3 rounded-[10px] border px-5 pt-[22px] pb-5 ${
+                  isSelected
+                    ? "h-[186px] border-(--GreenNormal)"
+                    : "h-[114px] border-gray-300"
+                }`}
+              >
+                <div className="flex h-[20px] items-end gap-1">
+                  {durationParts.map((part, partIndex) => (
+                    <div
+                      key={`duration-${index}-${partIndex}`}
+                      className="flex h-[20px] items-end"
+                    >
+                      <span className="text-[26px] leading-[20px] font-bold">
+                        {part.value}
+                      </span>
+                      <span className="relative top-px text-[17px] leading-[20px]">
+                        {part.unit}
+                      </span>
+                    </div>
+                  ))}
                 </div>
-              );
-            },
-          )}
+                <div className="text-[12px] text-(--Gray)">
+                  {formatKoreanTime(recommendedDepartureTime)} -{" "}
+                  {formatKoreanTime(arrivalTime)}
+                </div>
+                <RouteBar segments={deduplicatedSegments} />
+              </div>
+            );
+          })}
         </div>
       </div>
 
