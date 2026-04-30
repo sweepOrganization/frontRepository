@@ -6,6 +6,8 @@ import NotificationSetting3Page from "./pages/NotificationSetting3Page";
 import NotificationSetting4Page from "./pages/NotificationSetting4Page";
 import OAuthCallbackPage from "./pages/OAuthCallbackPage";
 import PushTestPage from "./pages/PushTestPage";
+import StartPage from "./pages/StartPage";
+import NotificationSettingPage from "./pages/NotificationSettingPage";
 
 function RootPage() {
   const token = localStorage.getItem("accessToken");
@@ -17,6 +19,11 @@ function App() {
   return (
     <Routes>
       <Route path="/" element={<RootPage />} />
+      <Route path="/start" element={<StartPage />} />
+      <Route
+        path="/notification-setting"
+        element={<NotificationSettingPage />}
+      />
       <Route path="/push-test" element={<PushTestPage />} />
       <Route
         path="/notification-setting-3"
