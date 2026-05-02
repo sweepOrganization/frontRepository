@@ -1,9 +1,9 @@
-import "./NotificationSettingPage.css";
+import { ko } from "date-fns/locale";
 import { useState } from "react";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import Picker from "react-mobile-picker";
-import { ko } from "date-fns/locale";
+import "./NotificationSettingPage.css";
 
 export default function NotificationSettingPage() {
   const [date, setDate] = useState<Date | null>(null);
@@ -198,6 +198,4 @@ export default function NotificationSettingPage() {
       </div>
     </div>
   );
-export default function NotificationSettingPage() {
-  return <div>알림 설정 페이지</div>;
 }
