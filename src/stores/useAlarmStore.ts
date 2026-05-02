@@ -14,6 +14,12 @@ export type Alarm = {
   interval: number;
   routeId: number | null;
   checklist: string;
+  startPlace: string;
+  endPlace: string;
+  startLat: number | null;
+  startLon: number | null;
+  endLat: number | null;
+  endLon: number | null;
 };
 
 const initialAlarm: Alarm = {
@@ -24,6 +30,12 @@ const initialAlarm: Alarm = {
   interval: 0,
   routeId: null,
   checklist: "",
+  startPlace: "",
+  endPlace: "",
+  startLat: null,
+  startLon: null,
+  endLat: null,
+  endLon: null,
 };
 
 export const useAlarmStore = create(
@@ -38,6 +50,12 @@ export const useAlarmStore = create(
           setInterval: (interval: number) => set({ interval }),
           setRouteId: (routeId: number | null) => set({ routeId }),
           setChecklist: (checklist: string) => set({ checklist }),
+          setStartPlace: (startPlace: string) => set({ startPlace }),
+          setEndPlace: (endPlace: string) => set({ endPlace }),
+          setStartLat: (startLat: number | null) => set({ startLat }),
+          setStartLon: (startLon: number | null) => set({ startLon }),
+          setEndLat: (endLat: number | null) => set({ endLat }),
+          setEndLon: (endLon: number | null) => set({ endLon }),
           reset: () => set({ ...initialAlarm }),
         },
       })),
@@ -51,6 +69,12 @@ export const useAlarmStore = create(
           interval: state.interval,
           routeId: state.routeId,
           checklist: state.checklist,
+          startPlace: state.startPlace,
+          endPlace: state.endPlace,
+          startLat: state.startLat,
+          startLon: state.startLon,
+          endLat: state.endLat,
+          endLon: state.endLon,
         }),
         storage: createJSONStorage(() => sessionStorage),
       },
@@ -73,6 +97,13 @@ export const useAlarmInterval = () => useAlarmStore((state) => state.interval);
 export const useAlarmRouteId = () => useAlarmStore((state) => state.routeId);
 export const useAlarmChecklist = () =>
   useAlarmStore((state) => state.checklist);
+export const useAlarmStartPlace = () =>
+  useAlarmStore((state) => state.startPlace);
+export const useAlarmEndPlace = () => useAlarmStore((state) => state.endPlace);
+export const useAlarmStartLat = () => useAlarmStore((state) => state.startLat);
+export const useAlarmStartLon = () => useAlarmStore((state) => state.startLon);
+export const useAlarmEndLat = () => useAlarmStore((state) => state.endLat);
+export const useAlarmEndLon = () => useAlarmStore((state) => state.endLon);
 
 //설정하기
 export const useSetAlarmTitle = () =>
@@ -89,5 +120,17 @@ export const useSetAlarmRouteId = () =>
   useAlarmStore((state) => state.actions.setRouteId);
 export const useSetAlarmChecklist = () =>
   useAlarmStore((state) => state.actions.setChecklist);
+export const useSetAlarmStartPlace = () =>
+  useAlarmStore((state) => state.actions.setStartPlace);
+export const useSetAlarmEndPlace = () =>
+  useAlarmStore((state) => state.actions.setEndPlace);
+export const useSetAlarmStartLat = () =>
+  useAlarmStore((state) => state.actions.setStartLat);
+export const useSetAlarmStartLon = () =>
+  useAlarmStore((state) => state.actions.setStartLon);
+export const useSetAlarmEndX = () =>
+  useAlarmStore((state) => state.actions.setEndLat);
+export const useSetAlarmEndLon = () =>
+  useAlarmStore((state) => state.actions.setEndLon);
 export const useResetAlarm = () =>
   useAlarmStore((state) => state.actions.reset);
