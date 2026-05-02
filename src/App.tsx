@@ -4,6 +4,7 @@ import HomePage from "./pages/HomePage";
 import LoginPage from "./pages/LoginPage";
 import NotificationSetting3Page from "./pages/NotificationSetting3Page";
 import NotificationSetting4Page from "./pages/NotificationSetting4Page";
+import NotificationSetting5Page from "./pages/NotificationSetting5Page";
 import OAuthCallbackPage from "./pages/OAuthCallbackPage";
 import NotificationStep2Page from "./pages/NotificationStep2Page";
 import PushTestPage from "./pages/PushTestPage";
@@ -34,6 +35,11 @@ function App() {
       <Route
         path="/notification-setting-4"
         element={<NotificationSetting4Page />}
+      />
+
+      <Route
+        path="/notification-setting-5"
+        element={<NotificationSetting5Page />}
       />
 
       <Route path="/login" element={<LoginPage />} />
