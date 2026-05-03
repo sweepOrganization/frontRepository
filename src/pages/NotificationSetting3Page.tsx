@@ -84,6 +84,7 @@ export default function NotificationSetting3Page() {
               index={index}
               routeId={routeId}
               segments={segments}
+              boardingInfo={boardingInfos[index]}
               recommendedDepartureTime={
                 boardingInfos[index]?.recommendedDepartureTime ?? "00:00:00"
               }

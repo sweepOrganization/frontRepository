@@ -241,7 +241,7 @@ export default function NotificationSettingPage() {
           type="button"
           disabled={!date || !time.hour || !time.minute}
           onClick={() => {
-            navigate("/notification-step2");
+            navigate("/notification-setting-2");
           }}
           className={`h-[67px] w-full text-[21px] font-normal ${
             !date || !time.hour || !time.minute

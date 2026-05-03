@@ -17,4 +17,11 @@ export type TrafficResponse = {
 
 export type BoardingInfo = {
   recommendedDepartureTime?: string;
+  segmentBoardingInfos?: SegmentBoardingInfo[];
+};
+
+export type SegmentBoardingInfo = {
+  trafficType?: number;
+  stopOrStation?: string;
+  transportId?: string;
 };
