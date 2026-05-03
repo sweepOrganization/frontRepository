@@ -1,3 +1,4 @@
+import { useNavigate } from "react-router-dom";
 import "./NotificationSettingPage.css";
 import { useState } from "react";
 import {
@@ -10,6 +11,7 @@ import Picker from "react-mobile-picker";
 import { ko } from "date-fns/locale";
 
 export default function NotificationSettingPage() {
+  const navigate = useNavigate();
   const setAlarmTitle = useSetAlarmTitle();
   const setAlarmArrivalTime = useSetAlarmArrivalTime();
   const [date, setDate] = useState<Date | null>(null);
@@ -32,7 +34,7 @@ export default function NotificationSettingPage() {
   };
 
   return (
-    <div className="box-border min-h-screen w-full px-5 pt-[52px]">
+    <div className="box-border min-h-screen w-full px-5 pt-[52px] pb-[143px]">
       <h1 className="text-[26px] leading-[150%] font-semibold text-[var(--Normal)]">
         일정이 언제인가요?
       </h1>
@@ -145,10 +147,22 @@ export default function NotificationSettingPage() {
 
               setTime(newTime);
 
-              if (newTime.hour && newTime.minute) {
-                setAlarmArrivalTime(
-                  `${newTime.period} ${newTime.hour}시 ${newTime.minute}분`,
-                );
+              if (newTime.hour && newTime.minute && date) {
+                const hour24 =
+                  newTime.period === "오후"
+                    ? (Number(newTime.hour) % 12) + 12
+                    : Number(newTime.hour) % 12;
+
+                const formattedDate = date.toISOString().split("T")[0];
+
+                const formattedTime = `${formattedDate}T${String(
+                  hour24,
+                ).padStart(
+                  2,
+                  "0",
+                )}:${String(newTime.minute).padStart(2, "0")}:00`;
+
+                setAlarmArrivalTime(formattedTime);
               }
             }}
             height={220}
@@ -216,6 +230,27 @@ export default function NotificationSettingPage() {
           <div className="pointer-events-none absolute inset-x-0 top-0 h-[16px] bg-gradient-to-b from-white to-transparent" />
           <div className="pointer-events-none absolute inset-x-0 bottom-0 h-[16px] bg-gradient-to-t from-white to-transparent" />
         </div>
+      </div>
+      {/* 버튼 */}
+      <div className="fixed right-0 bottom-0 left-0 bg-white">
+        <div className="h-1.5 w-full rounded-none bg-[#e4e4e4]">
+          <div className="h-full w-1/4 rounded-l-none rounded-r-[300px] bg-[var(--GreenNormal)]" />
+        </div>
+
+        <button
+          type="button"
+          disabled={!date || !time.hour || !time.minute}
+          onClick={() => {
+            navigate("/notification-step2");
+          }}
+          className={`h-[67px] w-full text-[21px] font-normal ${
+            !date || !time.hour || !time.minute
+              ? "bg-[var(--GreenLight)] text-[#b1d8b6]"
+              : "bg-[var(--GreenNormal)] text-white"
+          }`}
+        >
+          출발지 설정하기
+        </button>
       </div>
     </div>
   );

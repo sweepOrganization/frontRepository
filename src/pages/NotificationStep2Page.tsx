@@ -1,7 +1,23 @@
+import {
+  useSetAlarmStartPlace,
+  useSetAlarmEndPlace,
+  useSetAlarmStartLat,
+  useSetAlarmStartLon,
+  useSetAlarmEndLon,
+  useAlarmStore,
+} from "../stores/useAlarmStore";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 
 export default function NotificationStep2Page() {
+  const setStartPlaceStore = useSetAlarmStartPlace();
+  const setEndPlaceStore = useSetAlarmEndPlace();
+
+  const setStartLat = useSetAlarmStartLat();
+  const setStartLon = useSetAlarmStartLon();
+
+  const setEndLat = useAlarmStore((state) => state.actions.setEndLat);
+  const setEndLon = useSetAlarmEndLon();
   const navigate = useNavigate();
   const [start, setStart] = useState("");
   const [end, setEnd] = useState("");
@@ -45,12 +61,22 @@ export default function NotificationStep2Page() {
   const handleSelectPlace = (place: any) => {
     if (activeInput === "start") {
       setStart(place.place_name);
-      setStartPlace(place); // ⭐ 이거 추가
+      setStartPlace(place);
+
+      // store에 저장
+      setStartPlaceStore(place.place_name);
+      setStartLat(Number(place.y));
+      setStartLon(Number(place.x));
     }
 
     if (activeInput === "end") {
       setEnd(place.place_name);
-      setEndPlace(place); // ⭐ 이거 추가
+      setEndPlace(place);
+
+      // store에 저장
+      setEndPlaceStore(place.place_name);
+      setEndLat(Number(place.y));
+      setEndLon(Number(place.x));
     }
 
     setPlaces([]);
@@ -161,9 +187,14 @@ export default function NotificationStep2Page() {
         )}
       </div>
 
-      {/* 하단 고정 버튼 */}
-      <div className="border-t border-[#E5E7EB] bg-white">
+      {/* 버튼 */}
+      <div className="fixed right-0 bottom-0 left-0 bg-white">
+        <div className="h-1.5 w-full rounded-full bg-[#e4e4e4]">
+          <div className="h-full w-2/4 rounded-full bg-[var(--GreenNormal)]" />
+        </div>
+
         <button
+          type="button"
           disabled={!isActive}
           onClick={() => {
             const routeParams = {
@@ -177,10 +208,10 @@ export default function NotificationStep2Page() {
               state: routeParams,
             });
           }}
-          className={`h-[60px] w-full text-lg font-semibold ${
-            isActive
-              ? "bg-[var(--GreenNormal)] text-white"
-              : "bg-gray-100 text-gray-300"
+          className={`h-[67px] w-full text-[17px] font-bold ${
+            !isActive
+              ? "bg-[var(--GreenLight)] text-[#b1d8b6]"
+              : "bg-[var(--GreenNormal)] text-white"
           }`}
         >
           경로 보기
