@@ -240,7 +240,15 @@ export default function RouteItem({
                   )}
                 </div>
                 <span className="text-[13px] leading-[16px] text-(--DarkGray)">
-                  {formatStationName(info.stopOrStation)}
+                  <span
+                    className="font-bold"
+                    style={{ color: getSubwayIconColor(info.transportId) }}
+                  >
+                    {formatStationName(info.stopOrStation)}
+                  </span>{" "}
+                  <span className="text-black">
+                    {info.transportId}
+                  </span>
                 </span>
               </div>
             ))}
