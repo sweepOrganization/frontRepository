@@ -1,10 +1,14 @@
+import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 
 export default function NotificationStep2Page() {
+  const navigate = useNavigate();
   const [start, setStart] = useState("");
   const [end, setEnd] = useState("");
   const [places, setPlaces] = useState<any[]>([]);
   const [activeInput, setActiveInput] = useState<"start" | "end" | null>(null);
+  const [startPlace, setStartPlace] = useState<any>(null);
+  const [endPlace, setEndPlace] = useState<any>(null);
 
   const searchPlaces = async (keyword: string) => {
     if (keyword.length < 2) {
@@ -39,11 +43,18 @@ export default function NotificationStep2Page() {
   };
 
   const handleSelectPlace = (place: any) => {
-    if (activeInput === "start") setStart(place.place_name);
-    if (activeInput === "end") setEnd(place.place_name);
+    if (activeInput === "start") {
+      setStart(place.place_name);
+      setStartPlace(place); // ⭐ 이거 추가
+    }
+
+    if (activeInput === "end") {
+      setEnd(place.place_name);
+      setEndPlace(place); // ⭐ 이거 추가
+    }
+
     setPlaces([]);
   };
-
   const highlightText = (text: string, keyword: string) => {
     if (!keyword.trim()) return text;
     const regex = new RegExp(`(${keyword})`, "gi");
@@ -154,6 +165,18 @@ export default function NotificationStep2Page() {
       <div className="border-t border-[#E5E7EB] bg-white">
         <button
           disabled={!isActive}
+          onClick={() => {
+            const routeParams = {
+              startLat: startPlace?.y,
+              startLng: startPlace?.x,
+              endLat: endPlace?.y,
+              endLng: endPlace?.x,
+            };
+
+            navigate("/notification-setting-3", {
+              state: routeParams,
+            });
+          }}
           className={`h-[60px] w-full text-lg font-semibold ${
             isActive
               ? "bg-[var(--GreenNormal)] text-white"

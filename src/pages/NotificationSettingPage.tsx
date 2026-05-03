@@ -1,16 +1,22 @@
-import { ko } from "date-fns/locale";
+import "./NotificationSettingPage.css";
 import { useState } from "react";
+import {
+  useSetAlarmTitle,
+  useSetAlarmArrivalTime,
+} from "../stores/useAlarmStore";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import Picker from "react-mobile-picker";
-import "./NotificationSettingPage.css";
+import { ko } from "date-fns/locale";
 
 export default function NotificationSettingPage() {
+  const setAlarmTitle = useSetAlarmTitle();
+  const setAlarmArrivalTime = useSetAlarmArrivalTime();
   const [date, setDate] = useState<Date | null>(null);
   const [time, setTime] = useState({
     period: "오후",
-    hour: "1",
-    minute: "00",
+    hour: "",
+    minute: "",
   });
 
   const [title, setTitle] = useState("");
@@ -45,7 +51,10 @@ export default function NotificationSettingPage() {
         <input
           type="text"
           value={title}
-          onChange={(e) => setTitle(e.target.value)}
+          onChange={(e) => {
+            setTitle(e.target.value);
+            setAlarmTitle(e.target.value);
+          }}
           placeholder="예) 점심 약속, 병원 가기 등"
           className={`h-[48px] w-full rounded-[9px] border px-4 text-[16px] outline-none ${title ? "border-[var(--GreenNormal)]" : "border-[#e4e4e4]"} focus:border-[var(--GreenNormal)]`}
         />
@@ -86,11 +95,11 @@ export default function NotificationSettingPage() {
                 </span>
 
                 <div className="flex gap-[12px]">
-                  <button type="button" onClick={decreaseMonth} className="p-2">
+                  <button onClick={decreaseMonth} className="p-2">
                     <div className="h-[10px] w-[10px] rotate-45 border-b-2 border-l-2 border-[var(--GreenNormal)]" />
                   </button>
 
-                  <button type="button" onClick={increaseMonth} className="p-2">
+                  <button onClick={increaseMonth} className="p-2">
                     <div className="h-[10px] w-[10px] -rotate-45 border-r-2 border-b-2 border-[var(--GreenNormal)]" />
                   </button>
                 </div>
@@ -109,7 +118,11 @@ export default function NotificationSettingPage() {
         <input
           type="text"
           readOnly
-          value={`${time.period} ${time.hour}시 ${time.minute}분`}
+          value={
+            time.hour && time.minute
+              ? `${time.period} ${time.hour}시 ${time.minute}분`
+              : ""
+          }
           placeholder="도착 시간을 선택해 주세요"
           className={`mb-[12px] h-[48px] w-full rounded-[9px] border border-[#e4e4e4] px-4 text-[16px] outline-none ${
             time.hour && time.minute
@@ -119,13 +132,25 @@ export default function NotificationSettingPage() {
         />
 
         <div className="relative overflow-hidden rounded-[12px] border border-[#e4e4e4] bg-white [&_*]:!border-t-0 [&_*]:!border-b-0 [&_*]:!shadow-none">
-          <div className="pointer-events-none absolute top-1/2 right-[24px] left-[24px] h-[44px] -translate-y-1/2 rounded-full bg-[#eff9f1]" />
+          <div className="absolute top-1/2 right-[24px] left-[24px] h-[44px] -translate-y-1/2 rounded-full bg-[#eff9f1]" />
 
           <Picker
             value={time}
-            onChange={(value) =>
-              setTime(value as { period: string; hour: string; minute: string })
-            }
+            onChange={(value) => {
+              const newTime = value as {
+                period: string;
+                hour: string;
+                minute: string;
+              };
+
+              setTime(newTime);
+
+              if (newTime.hour && newTime.minute) {
+                setAlarmArrivalTime(
+                  `${newTime.period} ${newTime.hour}시 ${newTime.minute}분`,
+                );
+              }
+            }}
             height={220}
             itemHeight={44}
           >
