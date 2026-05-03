@@ -119,17 +119,15 @@ export default function NotificationSetting3Page() {
                       ? (trafficResponseList[nextIndex]?.routeId ?? null)
                       : null;
                   setAlarmRouteId(nextRouteId);
-                  if (
-                    selectedPathType === "PATH_TYPE_SUBWAY" &&
-                    nextIndex !== null
-                  ) {
+                  if (nextIndex !== null) {
                     const selectedBoardingInfo = boardingInfos[nextIndex];
                     const edt =
                       selectedBoardingInfo?.recommendedDepartureTime ??
                       "00:00:00";
-                    const selectedSegments =
-                      trafficResponseList[nextIndex]?.segments ?? [];
-                    const totalMinutes = selectedSegments.reduce(
+                    const selectedRoute = trafficResponseList[nextIndex];
+                    const totalMinutesFromRoute = Number(selectedRoute?.totalTime);
+                    const selectedSegments = selectedRoute?.segments ?? [];
+                    const totalMinutesFromSegments = selectedSegments.reduce(
                       (sum, segment) =>
                         sum +
                         Math.max(
@@ -140,6 +138,12 @@ export default function NotificationSetting3Page() {
                         ),
                       0,
                     );
+                    const totalMinutes =
+                      selectedPathType === "PATH_TYPE_SUBWAY"
+                        ? totalMinutesFromSegments
+                        : Number.isFinite(totalMinutesFromRoute)
+                          ? Math.max(0, totalMinutesFromRoute)
+                          : totalMinutesFromSegments;
                     setAlarmEdt(edt);
                     setAlarmEta(addMinutesToTime(edt, totalMinutes));
                   } else {
