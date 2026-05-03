@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import type { PathType } from "../api/SearchRoute";
 import RouteItem from "../components/route/RouteItem";
 import useSearchRouteQuery from "../hooks/queries/useSearchRouteQuery";
@@ -22,6 +23,7 @@ function addMinutesToTime(time: string, minutesToAdd: number) {
 }
 
 export default function NotificationSetting3Page() {
+  const navigate = useNavigate();
   const [selectedPathType, setSelectedPathType] =
     useState<PathType>("PATH_TYPE_SUBWAY");
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
@@ -125,7 +127,9 @@ export default function NotificationSetting3Page() {
                       selectedBoardingInfo?.recommendedDepartureTime ??
                       "00:00:00";
                     const selectedRoute = trafficResponseList[nextIndex];
-                    const totalMinutesFromRoute = Number(selectedRoute?.totalTime);
+                    const totalMinutesFromRoute = Number(
+                      selectedRoute?.totalTime,
+                    );
                     const selectedSegments = selectedRoute?.segments ?? [];
                     const totalMinutesFromSegments = selectedSegments.reduce(
                       (sum, segment) =>
@@ -170,6 +174,9 @@ export default function NotificationSetting3Page() {
               ? "bg-(--GreenLight) text-[#b1d8b6]"
               : "bg-(--GreenNormal) text-white"
           }`}
+          onClick={() => {
+            navigate("/notification-setting-4");
+          }}
         >
           경로선택
         </button>
