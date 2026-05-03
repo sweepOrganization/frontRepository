@@ -11,7 +11,6 @@ export type Alarm = {
   arrivalTime: string;
   edt: string;
   eta: string;
-  startTime: string;
   prepareTime: number;
   interval: number;
   routeId: number | null;
@@ -29,7 +28,6 @@ const initialAlarm: Alarm = {
   arrivalTime: "",
   edt: "",
   eta: "",
-  startTime: "",
   prepareTime: 0,
   interval: 0,
   routeId: null,
@@ -51,7 +49,6 @@ export const useAlarmStore = create(
           setArrivalTime: (arrivalTime: string) => set({ arrivalTime }),
           setEdt: (edt: string) => set({ edt }),
           setEta: (eta: string) => set({ eta }),
-          setStartTime: (startTime: string) => set({ startTime }),
           setPrepareTime: (prepareTime: number) => set({ prepareTime }),
           setInterval: (interval: number) => set({ interval }),
           setRouteId: (routeId: number | null) => set({ routeId }),
@@ -72,7 +69,6 @@ export const useAlarmStore = create(
           arrivalTime: state.arrivalTime,
           edt: state.edt,
           eta: state.eta,
-          startTime: state.startTime,
           prepareTime: state.prepareTime,
           interval: state.interval,
           routeId: state.routeId,
@@ -99,8 +95,6 @@ export const useAlarmArrivalTime = () =>
   useAlarmStore((state) => state.arrivalTime);
 export const useAlarmEdt = () => useAlarmStore((state) => state.edt);
 export const useAlarmEta = () => useAlarmStore((state) => state.eta);
-export const useAlarmStartTime = () =>
-  useAlarmStore((state) => state.startTime);
 export const useAlarmPrepareTime = () =>
   useAlarmStore((state) => state.prepareTime);
 export const useAlarmInterval = () => useAlarmStore((state) => state.interval);
@@ -122,8 +116,6 @@ export const useSetAlarmArrivalTime = () =>
   useAlarmStore((state) => state.actions.setArrivalTime);
 export const useSetAlarmEdt = () => useAlarmStore((state) => state.actions.setEdt);
 export const useSetAlarmEta = () => useAlarmStore((state) => state.actions.setEta);
-export const useSetAlarmStartTime = () =>
-  useAlarmStore((state) => state.actions.setStartTime);
 export const useSetAlarmPrepareTime = () =>
   useAlarmStore((state) => state.actions.setPrepareTime);
 export const useSetAlarmInterval = () =>
