@@ -1,13 +1,13 @@
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import {
-  useSetAlarmStartPlace,
+  useAlarmStore,
+  useSetAlarmEndLon,
   useSetAlarmEndPlace,
   useSetAlarmStartLat,
   useSetAlarmStartLon,
-  useSetAlarmEndLon,
-  useAlarmStore,
+  useSetAlarmStartPlace,
 } from "../stores/useAlarmStore";
-import { useNavigate } from "react-router-dom";
-import { useState } from "react";
 
 export default function NotificationStep2Page() {
   const setStartPlaceStore = useSetAlarmStartPlace();
