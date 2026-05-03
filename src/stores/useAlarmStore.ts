@@ -9,6 +9,8 @@ import {
 export type Alarm = {
   title: string;
   arrivalTime: string;
+  edt: string;
+  eta: string;
   startTime: string;
   prepareTime: number;
   interval: number;
@@ -25,6 +27,8 @@ export type Alarm = {
 const initialAlarm: Alarm = {
   title: "",
   arrivalTime: "",
+  edt: "",
+  eta: "",
   startTime: "",
   prepareTime: 0,
   interval: 0,
@@ -45,6 +49,8 @@ export const useAlarmStore = create(
         actions: {
           setTitle: (title: string) => set({ title }),
           setArrivalTime: (arrivalTime: string) => set({ arrivalTime }),
+          setEdt: (edt: string) => set({ edt }),
+          setEta: (eta: string) => set({ eta }),
           setStartTime: (startTime: string) => set({ startTime }),
           setPrepareTime: (prepareTime: number) => set({ prepareTime }),
           setInterval: (interval: number) => set({ interval }),
@@ -64,6 +70,8 @@ export const useAlarmStore = create(
         partialize: (state) => ({
           title: state.title,
           arrivalTime: state.arrivalTime,
+          edt: state.edt,
+          eta: state.eta,
           startTime: state.startTime,
           prepareTime: state.prepareTime,
           interval: state.interval,
@@ -89,6 +97,8 @@ export const useAlarmStore = create(
 export const useAlarmTitle = () => useAlarmStore((state) => state.title);
 export const useAlarmArrivalTime = () =>
   useAlarmStore((state) => state.arrivalTime);
+export const useAlarmEdt = () => useAlarmStore((state) => state.edt);
+export const useAlarmEta = () => useAlarmStore((state) => state.eta);
 export const useAlarmStartTime = () =>
   useAlarmStore((state) => state.startTime);
 export const useAlarmPrepareTime = () =>
@@ -110,6 +120,8 @@ export const useSetAlarmTitle = () =>
   useAlarmStore((state) => state.actions.setTitle);
 export const useSetAlarmArrivalTime = () =>
   useAlarmStore((state) => state.actions.setArrivalTime);
+export const useSetAlarmEdt = () => useAlarmStore((state) => state.actions.setEdt);
+export const useSetAlarmEta = () => useAlarmStore((state) => state.actions.setEta);
 export const useSetAlarmStartTime = () =>
   useAlarmStore((state) => state.actions.setStartTime);
 export const useSetAlarmPrepareTime = () =>
