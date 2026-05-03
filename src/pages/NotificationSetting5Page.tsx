@@ -1,17 +1,56 @@
-﻿import {
+import useCreateAlarmMutation from "../hooks/mutations/useCreateAlarmMutation";
+import {
   useAlarmArrivalTime,
+  useAlarmEdt,
   useAlarmEndPlace,
+  useAlarmEta,
   useAlarmInterval,
+  useAlarmPrepareTime,
   useAlarmStartPlace,
   useAlarmTitle,
 } from "../stores/useAlarmStore";
 
+function subtractMinutesFromTime(time: string, minutesToSubtract: number) {
+  const [hour = "00", minute = "00", second = "00"] = time.split(":");
+  const h = Number(hour) || 0;
+  const m = Number(minute) || 0;
+  const s = Number(second) || 0;
+  const base = new Date(2000, 0, 1, h, m, s);
+  base.setMinutes(base.getMinutes() - Math.max(0, minutesToSubtract));
+  return `${String(base.getHours()).padStart(2, "0")}:${String(
+    base.getMinutes(),
+  ).padStart(2, "0")}`;
+}
+
+function getDiffMinutesLabel(edt: string, eta: string) {
+  if (!edt || !eta) return "-분예상";
+  const [eh = "0", em = "0"] = edt.split(":");
+  const [ah = "0", am = "0"] = eta.split(":");
+  const edtTotal = (Number(eh) || 0) * 60 + (Number(em) || 0);
+  const etaTotal = (Number(ah) || 0) * 60 + (Number(am) || 0);
+
+  let diff = etaTotal - edtTotal;
+  if (diff < 0) diff += 24 * 60;
+  if (diff < 60) return `${diff}분예상`;
+
+  const hours = Math.floor(diff / 60);
+  const minutes = diff % 60;
+  if (minutes === 0) return `${hours}시간예상`;
+  return `${hours}시간 ${minutes}분예상`;
+}
+
 export default function NotificationSetting5Page() {
   const title = useAlarmTitle();
   const arrivalTime = useAlarmArrivalTime();
+  const edt = useAlarmEdt();
+  const eta = useAlarmEta();
+  const prepareTime = useAlarmPrepareTime();
   const startPlace = useAlarmStartPlace();
   const endPlace = useAlarmEndPlace();
   const interval = useAlarmInterval();
+  const { mutate: createAlarm, isPending: isCreateAlarmPending } =
+    useCreateAlarmMutation();
+
   const isoMatch = arrivalTime.match(
     /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})/,
   );
@@ -19,6 +58,13 @@ export default function NotificationSetting5Page() {
     ? `${Number(isoMatch[2])}월 ${Number(isoMatch[3])}일`
     : "-";
   const formattedTime = isoMatch ? `${isoMatch[4]}:${isoMatch[5]}` : "-";
+
+  const readyStartTime = edt
+    ? subtractMinutesFromTime(edt, prepareTime)
+    : formattedTime;
+  const edtDisplay = edt ? edt.slice(0, 5) : formattedTime;
+  const etaDisplay = eta ? eta.slice(0, 5) : formattedTime;
+  const expectedDurationLabel = getDiffMinutesLabel(edt, eta);
 
   return (
     <div className="flex h-screen flex-col">
@@ -81,17 +127,21 @@ export default function NotificationSetting5Page() {
                   </>
                 )}
               </div>
+
               <div className="mb-5 flex flex-col gap-2">
-                <span>준비 시작</span>
-                <div>
-                  <span className="text-[48px] leading-[48px] font-semibold text-[#202124]">
-                    {formattedTime}
+                <span className="text-[19px] leading-[19px] font-bold text-(--Dark)">
+                  준비 시작
+                </span>
+                <div className="flex items-center">
+                  <span className="text-[38px] leading-[38px] font-semibold text-(--Dark)">
+                    {readyStartTime}
                   </span>
-                  <span className="text-[38px] leading-[38px] text-[#202124]">
+                  <span className="ml-2 text-[17px] leading-[17px] font-bold text-(--Dark)">
                     부터 준비하세요
                   </span>
                 </div>
               </div>
+
               <div className="w-fit rounded-[50px] border border-[#e4e4e4] bg-[#fbfbfb] px-2 py-0.5">
                 <span className="text-[13px] leading-[13px] text-(--Gray)">
                   알람 예정 타임라인
@@ -114,7 +164,7 @@ export default function NotificationSetting5Page() {
                         준비 시작
                       </span>
                       <span className="text-[13px] leading-[13px] text-(--Gray)">
-                        14:30
+                        {readyStartTime}
                       </span>
                     </div>
                     <span className="mt-1 text-[11px] leading-[11px] text-(--Gray)">
@@ -161,7 +211,7 @@ export default function NotificationSetting5Page() {
                         출발 알림
                       </span>
                       <span className="text-[13px] leading-[13px] text-(--Gray)">
-                        {formattedTime}
+                        {edtDisplay}
                       </span>
                     </div>
                     <span className="mt-1 text-[11px] leading-[11px] text-(--Gray)">
@@ -169,13 +219,14 @@ export default function NotificationSetting5Page() {
                     </span>
                   </div>
                 </div>
-                <div className="mx-5 my-4 flex items-center justify-between">
+
+                <div className="mx-5 my-8 flex items-center justify-between">
                   <div className="flex flex-col gap-[2px]">
                     <span className="text-[15px] leading-[15px] text-(--Gray)">
                       출발
                     </span>
                     <span className="text-[38px] leading-[38px] text-(--Dark)">
-                      14:30
+                      {edtDisplay}
                     </span>
                   </div>
                   <div className="flex flex-col items-center gap-2">
@@ -185,7 +236,7 @@ export default function NotificationSetting5Page() {
                       className="h-2 w-8 shrink-0"
                     />
                     <span className="text-[12px] leading-[12px] text-(--Gray)">
-                      57분예상
+                      {expectedDurationLabel}
                     </span>
                   </div>
                   <div className="flex flex-col gap-[2px]">
@@ -193,7 +244,7 @@ export default function NotificationSetting5Page() {
                       도착
                     </span>
                     <span className="text-[38px] leading-[38px] text-(--Dark)">
-                      15:27
+                      {etaDisplay}
                     </span>
                   </div>
                 </div>
@@ -209,9 +260,11 @@ export default function NotificationSetting5Page() {
         </div>
         <button
           type="button"
+          disabled={isCreateAlarmPending}
+          onClick={() => createAlarm()}
           className="mt-auto h-[67px] w-full bg-(--GreenNormal) text-[17px] font-bold text-white"
         >
-          최종 확인하기
+          {isCreateAlarmPending ? "알람 생성중" : "완료"}
         </button>
       </div>
     </div>

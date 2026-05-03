@@ -1,14 +1,14 @@
-import { useNavigate } from "react-router-dom";
-import "./NotificationSettingPage.css";
+import { ko } from "date-fns/locale";
 import { useState } from "react";
-import {
-  useSetAlarmTitle,
-  useSetAlarmArrivalTime,
-} from "../stores/useAlarmStore";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import Picker from "react-mobile-picker";
-import { ko } from "date-fns/locale";
+import { useNavigate } from "react-router-dom";
+import {
+  useSetAlarmArrivalTime,
+  useSetAlarmTitle,
+} from "../stores/useAlarmStore";
+import "./NotificationSetting1Page.css";
 
 export default function NotificationSettingPage() {
   const navigate = useNavigate();
@@ -241,7 +241,7 @@ export default function NotificationSettingPage() {
           type="button"
           disabled={!date || !time.hour || !time.minute}
           onClick={() => {
-            navigate("/notification-step2");
+            navigate("/notification-setting-2");
           }}
           className={`h-[67px] w-full text-[21px] font-normal ${
             !date || !time.hour || !time.minute

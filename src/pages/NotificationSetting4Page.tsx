@@ -55,8 +55,7 @@ export default function NotificationSetting4Page() {
   };
 
   const hasSelection =
-    hour.trim() !== "" &&
-    minute.trim() !== "" &&
+    (hour.trim() !== "" || minute.trim() !== "") &&
     selectedReminderMinutes !== null;
 
   return (
