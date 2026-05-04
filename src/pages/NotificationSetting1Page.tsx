@@ -17,14 +17,15 @@ export default function NotificationSettingPage() {
   const [date, setDate] = useState<Date | null>(null);
   const [time, setTime] = useState({
     period: "오후",
-    hour: "",
-    minute: "",
+    hour: "1",
+    minute: "00",
   });
+  const [isTimeSelected, setIsTimeSelected] = useState(false);
 
   const [title, setTitle] = useState("");
 
   useEffect(() => {
-    if (!date || !time.hour || !time.minute) return;
+    if (!date || !isTimeSelected) return;
 
     const hour24 =
       time.period === "오후"
@@ -40,7 +41,7 @@ export default function NotificationSettingPage() {
     ).padStart(2, "0")}:00`;
 
     setAlarmArrivalTime(formattedTime);
-  }, [date, time, setAlarmArrivalTime]);
+  }, [date, time, isTimeSelected, setAlarmArrivalTime]);
 
   const formatDate = (d: Date | null) => {
     if (!d) return "";
@@ -137,7 +138,7 @@ export default function NotificationSettingPage() {
           type="text"
           readOnly
           value={
-            time.hour && time.minute
+            isTimeSelected
               ? `${time.period} ${time.hour}시 ${time.minute}분`
               : ""
           }
@@ -149,7 +150,7 @@ export default function NotificationSettingPage() {
           }`}
         />
 
-        <div className="relative overflow-hidden rounded-[12px] border border-[#e4e4e4] bg-white [&_*]:!border-t-0 [&_*]:!border-b-0 [&_*]:!shadow-none">
+        <div className="relative overflow-hidden rounded-[12px] border border-[#e4e4e4] bg-white touch-pan-y [&_*]:!border-t-0 [&_*]:!border-b-0 [&_*]:!shadow-none">
           <div className="absolute top-1/2 right-[24px] left-[24px] h-[44px] -translate-y-1/2 rounded-full bg-[#eff9f1]" />
 
           <Picker
@@ -162,7 +163,9 @@ export default function NotificationSettingPage() {
               };
 
               setTime(newTime);
+              setIsTimeSelected(true);
             }}
+            wheelMode="normal"
             height={220}
             itemHeight={44}
           >
@@ -237,12 +240,12 @@ export default function NotificationSettingPage() {
 
         <button
           type="button"
-          disabled={!date || !time.hour || !time.minute}
+          disabled={!date || !isTimeSelected}
           onClick={() => {
             navigate("/notification-setting-2");
           }}
           className={`h-[67px] w-full text-[21px] font-normal ${
-            !date || !time.hour || !time.minute
+            !date || !isTimeSelected
               ? "bg-[var(--GreenLight)] text-[#b1d8b6]"
               : "bg-[var(--GreenNormal)] text-white"
           }`}
