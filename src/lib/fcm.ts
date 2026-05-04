@@ -12,6 +12,8 @@ export const requestPermissionAndGetToken = async () => {
     vapidKey: import.meta.env.VITE_FIREBASE_VAPID_KEY,
   });
 
-  console.log("FCM token:", token);
+  if (import.meta.env.DEV) {
+    console.log("FCM token:", token);
+  }
   return token;
 };
