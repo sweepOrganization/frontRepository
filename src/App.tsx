@@ -9,6 +9,7 @@ import NotificationSetting3Page from "./pages/NotificationSetting3Page";
 import NotificationSetting4Page from "./pages/NotificationSetting4Page";
 import NotificationSetting5Page from "./pages/NotificationSetting5Page";
 import OAuthCallbackPage from "./pages/OAuthCallbackPage";
+import RoutePage from "./pages/RoutePage";
 import StartPage from "./pages/StartPage";
 
 function RootPage() {
@@ -44,6 +45,7 @@ function App() {
           path="/notification-setting-5"
           element={<NotificationSetting5Page />}
         />
+        <Route path="/route/:routeId" element={<RoutePage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/oauth2/callback" element={<OAuthCallbackPage />} />
         <Route path="*" element={<Navigate to="/" replace />} />
