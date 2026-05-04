@@ -1,7 +1,6 @@
 import { Navigate, Route, Routes } from "react-router-dom";
 import "./App.css";
 import FcmAutoRegistration from "./components/fcm/FcmAutoRegistration";
-import HomePage from "./pages/HomePage";
 import LoginPage from "./pages/LoginPage";
 import NotificationSetting1Page from "./pages/NotificationSetting1Page";
 import { default as NotificationSetting2Page } from "./pages/NotificationSetting2Page";
@@ -11,10 +10,10 @@ import NotificationSetting5Page from "./pages/NotificationSetting5Page";
 import OAuthCallbackPage from "./pages/OAuthCallbackPage";
 import StartPage from "./pages/StartPage";
 
-function RootPage() {
+function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const token = localStorage.getItem("accessToken");
   if (!token) return <Navigate to="/login" replace />;
-  return <HomePage />;
+  return <>{children}</>;
 }
 
 function App() {
@@ -22,27 +21,61 @@ function App() {
     <>
       <FcmAutoRegistration />
       <Routes>
-        <Route path="/" element={<RootPage />} />
-        <Route path="/start" element={<StartPage />} />
+        <Route
+          path="/"
+          element={
+            <ProtectedRoute>
+              <Navigate to="/start" replace />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/start"
+          element={
+            <ProtectedRoute>
+              <StartPage />
+            </ProtectedRoute>
+          }
+        />
         <Route
           path="/notification-setting-1"
-          element={<NotificationSetting1Page />}
+          element={
+            <ProtectedRoute>
+              <NotificationSetting1Page />
+            </ProtectedRoute>
+          }
         />
         <Route
           path="/notification-setting-2"
-          element={<NotificationSetting2Page />}
+          element={
+            <ProtectedRoute>
+              <NotificationSetting2Page />
+            </ProtectedRoute>
+          }
         />
         <Route
           path="/notification-setting-3"
-          element={<NotificationSetting3Page />}
+          element={
+            <ProtectedRoute>
+              <NotificationSetting3Page />
+            </ProtectedRoute>
+          }
         />
         <Route
           path="/notification-setting-4"
-          element={<NotificationSetting4Page />}
+          element={
+            <ProtectedRoute>
+              <NotificationSetting4Page />
+            </ProtectedRoute>
+          }
         />
         <Route
           path="/notification-setting-5"
-          element={<NotificationSetting5Page />}
+          element={
+            <ProtectedRoute>
+              <NotificationSetting5Page />
+            </ProtectedRoute>
+          }
         />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/oauth2/callback" element={<OAuthCallbackPage />} />
