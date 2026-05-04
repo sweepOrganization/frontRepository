@@ -62,7 +62,7 @@ export default function NotificationSetting3Page() {
           </span>
         </div>
 
-        <div className="mb-3 grid h-11 grid-cols-2 rounded-[10px] bg-[#f2f2f2] p-1">
+        <div className="mb-3 grid h-11 grid-cols-2 rounded-[100px] bg-[#f2f2f2] p-1">
           <button
             type="button"
             onClick={() => {
@@ -72,10 +72,10 @@ export default function NotificationSetting3Page() {
               setAlarmEdt("");
               setAlarmEta("");
             }}
-            className={`h-[36px] w-full appearance-none rounded-[8px] border-0 p-0 text-[14px] leading-[14px] font-semibold ${
+            className={`h-[36px] w-full appearance-none rounded-[100px] border p-0 text-[14px] leading-[14px] font-semibold ${
               selectedPathType === "PATH_TYPE_SUBWAY"
-                ? "bg-white text-black"
-                : "text-(--DarkGray)"
+                ? "border-(--GreenNormal) bg-white text-(--GreenNormalActive)"
+                : "border-transparent text-(--DarkGray)"
             }`}
           >
             지하철
@@ -89,10 +89,10 @@ export default function NotificationSetting3Page() {
               setAlarmEdt("");
               setAlarmEta("");
             }}
-            className={`h-[36px] w-full appearance-none rounded-[8px] border-0 p-0 text-[14px] leading-[14px] font-semibold ${
+            className={`h-[36px] w-full appearance-none rounded-[100px] border p-0 text-[14px] leading-[14px] font-semibold ${
               selectedPathType === "PATH_TYPE_BUS"
-                ? "bg-white text-black"
-                : "text-(--DarkGray)"
+                ? "border-(--GreenNormal) bg-white text-(--GreenNormalActive)"
+                : "border-transparent text-(--DarkGray)"
             }`}
           >
             버스
