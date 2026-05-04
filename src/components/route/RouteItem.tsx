@@ -209,7 +209,7 @@ export default function RouteItem({
         ))}
       </div>
       <div className="text-[12px] text-(--Gray)">
-        {formatKoreanTime(recommendedDepartureTime)} - {" "}
+        {formatKoreanTime(recommendedDepartureTime)} -{" "}
         {formatKoreanTime(arrivalTime)}
       </div>
       <RouteBar segments={deduplicatedSegments} />
@@ -246,9 +246,7 @@ export default function RouteItem({
                   >
                     {formatStationName(info.stopOrStation)}
                   </span>{" "}
-                  <span className="text-black">
-                    {info.transportId}
-                  </span>
+                  <span className="text-black">{info.transportId}</span>
                 </span>
               </div>
             ))}
@@ -292,11 +290,13 @@ export default function RouteItem({
                       className="font-bold"
                       style={{
                         color: getBusIconColor(
-                          busTypeByRouteName[normalizeBusRouteName(transportId)],
+                          busTypeByRouteName[
+                            normalizeBusRouteName(transportId)
+                          ],
                         ),
                       }}
                     >
-                      {idIndex > 0 ? " " : ""}
+                      {idIndex > 0 ? ", " : ""}
                       {transportId}
                     </span>
                   ))}{" "}
