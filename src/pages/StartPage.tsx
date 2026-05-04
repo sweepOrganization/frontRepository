@@ -7,9 +7,15 @@ const FCM_TOKEN_STORAGE_KEY = "fcmToken";
 
 export default function StartPage() {
   const navigate = useNavigate();
-  const { mutateAsync: postFcmToken } = usePostFcmTokenMutation();
   const [isCheckingPermission, setIsCheckingPermission] = useState(false);
   const [permissionMessage, setPermissionMessage] = useState("");
+
+  const { mutateAsync: postFcmToken } = usePostFcmTokenMutation({
+    onError: (error) => {
+      console.error("FCM token post failed:", error);
+      setPermissionMessage("알림 토큰 전송에 실패했어요. 다시 시도해주세요.");
+    },
+  });
 
   const getBlockedReason = () => {
     if (typeof window === "undefined" || !("Notification" in window)) {
@@ -35,31 +41,45 @@ export default function StartPage() {
     }
 
     setIsCheckingPermission(true);
-    try {
-      const token = await requestPermissionAndGetToken();
-      if (!token) {
+    let hasFlowError = false;
+
+    const token = await requestPermissionAndGetToken().catch((error) => {
+      console.error("FCM permission/token flow failed:", error);
+      setPermissionMessage(
+        "알림 설정 중 문제가 발생했어요. 다시 시도해주세요.",
+      );
+      hasFlowError = true;
+      return null;
+    });
+
+    if (!token) {
+      if (!hasFlowError) {
         setPermissionMessage(
           Notification.permission === "default"
             ? "권한 창에서 알림 허용을 눌러주세요."
             : "알림을 허용해야 다음 단계로 이동할 수 있어요.",
         );
+      }
+      setIsCheckingPermission(false);
+      return;
+    }
+
+    const isSameToken = localStorage.getItem(FCM_TOKEN_STORAGE_KEY) === token;
+    if (!isSameToken) {
+      const isPosted = await postFcmToken(token)
+        .then(() => true)
+        .catch(() => false);
+
+      if (!isPosted) {
+        setIsCheckingPermission(false);
         return;
       }
 
-      if (localStorage.getItem(FCM_TOKEN_STORAGE_KEY) !== token) {
-        await postFcmToken(token);
-        localStorage.setItem(FCM_TOKEN_STORAGE_KEY, token);
-      }
-
-      navigate("/notification-setting-1");
-    } catch (error) {
-      console.error("FCM permission/token flow failed:", error);
-      setPermissionMessage(
-        "알림 설정 중 문제가 발생했어요. 다시 시도해주세요.",
-      );
-    } finally {
-      setIsCheckingPermission(false);
+      localStorage.setItem(FCM_TOKEN_STORAGE_KEY, token);
     }
+
+    setIsCheckingPermission(false);
+    navigate("/notification-setting-1");
   };
 
   return (
