@@ -1,4 +1,4 @@
-import { useAlarmStore } from "../stores/useAlarmStore";
+﻿import { useAlarmStore } from "../stores/useAlarmStore";
 
 type CreateAlarmRequestBody = {
   routeId: number;
@@ -9,6 +9,17 @@ type CreateAlarmRequestBody = {
   prepareTime: number;
   interval: number;
 };
+
+function toLocalDateTimeString(date: Date) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  const hour = String(date.getHours()).padStart(2, "0");
+  const minute = String(date.getMinutes()).padStart(2, "0");
+  const second = String(date.getSeconds()).padStart(2, "0");
+
+  return `${year}-${month}-${day}T${hour}:${minute}:${second}`;
+}
 
 function toStartTimeFromEdt(
   arrivalTime: string,
@@ -30,7 +41,7 @@ function toStartTimeFromEdt(
   }
 
   startDate.setMinutes(startDate.getMinutes() - Math.max(0, prepareTime));
-  return startDate.toISOString();
+  return toLocalDateTimeString(startDate);
 }
 
 export async function createAlarm() {
@@ -54,14 +65,13 @@ export async function createAlarm() {
   if (!edt) {
     throw new Error("edt가 없습니다.");
   }
-  const normalizedArrivalTime = new Date(arrivalTime).toISOString();
 
   const body: CreateAlarmRequestBody = {
     routeId,
     title,
     checklist,
-    arrivalTime: normalizedArrivalTime,
-    startTime: toStartTimeFromEdt(normalizedArrivalTime, edt, prepareTime),
+    arrivalTime,
+    startTime: toStartTimeFromEdt(arrivalTime, edt, prepareTime),
     prepareTime,
     interval,
   };
@@ -76,7 +86,7 @@ export async function createAlarm() {
   });
 
   if (!response.ok) {
-    throw new Error("알림 생성 요청에 실패했습니다.");
+    throw new Error("알림 생성 요청이 실패했습니다.");
   }
 
   return response.json();

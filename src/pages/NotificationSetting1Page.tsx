@@ -1,5 +1,5 @@
-import { ko } from "date-fns/locale";
-import { useState } from "react";
+﻿import { ko } from "date-fns/locale";
+import { useEffect, useState } from "react";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import Picker from "react-mobile-picker";
@@ -17,11 +17,31 @@ export default function NotificationSettingPage() {
   const [date, setDate] = useState<Date | null>(null);
   const [time, setTime] = useState({
     period: "오후",
-    hour: "",
-    minute: "",
+    hour: "1",
+    minute: "00",
   });
+  const [isTimeSelected, setIsTimeSelected] = useState(false);
 
   const [title, setTitle] = useState("");
+
+  useEffect(() => {
+    if (!date || !isTimeSelected) return;
+
+    const hour24 =
+      time.period === "오후"
+        ? (Number(time.hour) % 12) + 12
+        : Number(time.hour) % 12;
+
+    const formattedDate = `${date.getFullYear()}-${String(
+      date.getMonth() + 1,
+    ).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+
+    const formattedTime = `${formattedDate}T${String(hour24).padStart(2, "0")}:${String(
+      time.minute,
+    ).padStart(2, "0")}:00`;
+
+    setAlarmArrivalTime(formattedTime);
+  }, [date, time, isTimeSelected, setAlarmArrivalTime]);
 
   const formatDate = (d: Date | null) => {
     if (!d) return "";
@@ -36,14 +56,13 @@ export default function NotificationSettingPage() {
   return (
     <div className="box-border min-h-screen w-full px-5 pt-[52px] pb-[143px]">
       <h1 className="text-[26px] leading-[150%] font-semibold text-[var(--Normal)]">
-        일정이 언제인가요?
+        일정을 언제로 할까요?
       </h1>
 
       <p className="mt-[4px] text-[17px] font-normal text-[var(--Darkgray)]">
-        날짜와 시간을 알려주세요
+        날짜와 도착 시간을 알려주세요
       </p>
 
-      {/* 주제 */}
       <div className="mt-[40px]">
         <label className="mb-[10px] block text-[17px] font-semibold text-[var(--Normal)]">
           주제{" "}
@@ -57,12 +76,11 @@ export default function NotificationSettingPage() {
             setTitle(e.target.value);
             setAlarmTitle(e.target.value);
           }}
-          placeholder="예) 점심 약속, 병원 가기 등"
+          placeholder="예: 점심 약속, 병원 가기"
           className={`h-[48px] w-full rounded-[9px] border px-4 text-[16px] outline-none ${title ? "border-[var(--GreenNormal)]" : "border-[#e4e4e4]"} focus:border-[var(--GreenNormal)]`}
         />
       </div>
 
-      {/* 날짜 */}
       <div className="mt-[24px]">
         <label className="mb-[10px] block text-[17px] font-semibold text-[var(--Normal)]">
           날짜
@@ -97,11 +115,11 @@ export default function NotificationSettingPage() {
                 </span>
 
                 <div className="flex gap-[12px]">
-                  <button onClick={decreaseMonth} className="p-2">
+                  <button onClick={decreaseMonth} className="p-2" type="button">
                     <div className="h-[10px] w-[10px] rotate-45 border-b-2 border-l-2 border-[var(--GreenNormal)]" />
                   </button>
 
-                  <button onClick={increaseMonth} className="p-2">
+                  <button onClick={increaseMonth} className="p-2" type="button">
                     <div className="h-[10px] w-[10px] -rotate-45 border-r-2 border-b-2 border-[var(--GreenNormal)]" />
                   </button>
                 </div>
@@ -111,7 +129,6 @@ export default function NotificationSettingPage() {
         </div>
       </div>
 
-      {/* 도착 시간 */}
       <div className="mt-[32px]">
         <label className="mb-[10px] block text-[17px] font-semibold text-[var(--Normal)]">
           도착 시간
@@ -121,7 +138,7 @@ export default function NotificationSettingPage() {
           type="text"
           readOnly
           value={
-            time.hour && time.minute
+            isTimeSelected
               ? `${time.period} ${time.hour}시 ${time.minute}분`
               : ""
           }
@@ -133,7 +150,7 @@ export default function NotificationSettingPage() {
           }`}
         />
 
-        <div className="relative overflow-hidden rounded-[12px] border border-[#e4e4e4] bg-white [&_*]:!border-t-0 [&_*]:!border-b-0 [&_*]:!shadow-none">
+        <div className="relative overflow-hidden rounded-[12px] border border-[#e4e4e4] bg-white touch-pan-y [&_*]:!border-t-0 [&_*]:!border-b-0 [&_*]:!shadow-none">
           <div className="absolute top-1/2 right-[24px] left-[24px] h-[44px] -translate-y-1/2 rounded-full bg-[#eff9f1]" />
 
           <Picker
@@ -146,25 +163,9 @@ export default function NotificationSettingPage() {
               };
 
               setTime(newTime);
-
-              if (newTime.hour && newTime.minute && date) {
-                const hour24 =
-                  newTime.period === "오후"
-                    ? (Number(newTime.hour) % 12) + 12
-                    : Number(newTime.hour) % 12;
-
-                const formattedDate = date.toISOString().split("T")[0];
-
-                const formattedTime = `${formattedDate}T${String(
-                  hour24,
-                ).padStart(
-                  2,
-                  "0",
-                )}:${String(newTime.minute).padStart(2, "0")}:00`;
-
-                setAlarmArrivalTime(formattedTime);
-              }
+              setIsTimeSelected(true);
             }}
+            wheelMode="normal"
             height={220}
             itemHeight={44}
           >
@@ -231,7 +232,7 @@ export default function NotificationSettingPage() {
           <div className="pointer-events-none absolute inset-x-0 bottom-0 h-[16px] bg-gradient-to-t from-white to-transparent" />
         </div>
       </div>
-      {/* 버튼 */}
+
       <div className="fixed right-0 bottom-0 left-0 bg-white">
         <div className="h-1.5 w-full rounded-none bg-[#e4e4e4]">
           <div className="h-full w-1/4 rounded-l-none rounded-r-[300px] bg-[var(--GreenNormal)]" />
@@ -239,12 +240,12 @@ export default function NotificationSettingPage() {
 
         <button
           type="button"
-          disabled={!date || !time.hour || !time.minute}
+          disabled={!date || !isTimeSelected}
           onClick={() => {
             navigate("/notification-setting-2");
           }}
           className={`h-[67px] w-full text-[21px] font-normal ${
-            !date || !time.hour || !time.minute
+            !date || !isTimeSelected
               ? "bg-[var(--GreenLight)] text-[#b1d8b6]"
               : "bg-[var(--GreenNormal)] text-white"
           }`}

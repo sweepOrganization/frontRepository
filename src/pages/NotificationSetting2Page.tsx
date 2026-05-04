@@ -9,6 +9,18 @@ import {
   useSetAlarmStartPlace,
 } from "../stores/useAlarmStore";
 
+type KakaoPlace = {
+  id: string;
+  place_name: string;
+  address_name: string;
+  x: string;
+  y: string;
+};
+
+type KakaoKeywordSearchResponse = {
+  documents?: KakaoPlace[];
+};
+
 export default function NotificationStep2Page() {
   const setStartPlaceStore = useSetAlarmStartPlace();
   const setEndPlaceStore = useSetAlarmEndPlace();
@@ -21,10 +33,10 @@ export default function NotificationStep2Page() {
   const navigate = useNavigate();
   const [start, setStart] = useState("");
   const [end, setEnd] = useState("");
-  const [places, setPlaces] = useState<any[]>([]);
+  const [places, setPlaces] = useState<KakaoPlace[]>([]);
   const [activeInput, setActiveInput] = useState<"start" | "end" | null>(null);
-  const [startPlace, setStartPlace] = useState<any>(null);
-  const [endPlace, setEndPlace] = useState<any>(null);
+  const [startPlace, setStartPlace] = useState<KakaoPlace | null>(null);
+  const [endPlace, setEndPlace] = useState<KakaoPlace | null>(null);
 
   const searchPlaces = async (keyword: string) => {
     if (keyword.length < 2) {
@@ -44,7 +56,7 @@ export default function NotificationStep2Page() {
         },
       );
 
-      const data = await res.json();
+      const data: KakaoKeywordSearchResponse = await res.json();
       if (!res.ok) return setPlaces([]);
       setPlaces(data.documents ?? []);
     } catch {
@@ -54,11 +66,15 @@ export default function NotificationStep2Page() {
 
   const handleSearch = (value: string, type: "start" | "end") => {
     setActiveInput(type);
-    type === "start" ? setStart(value) : setEnd(value);
+    if (type === "start") {
+      setStart(value);
+    } else {
+      setEnd(value);
+    }
     searchPlaces(value);
   };
 
-  const handleSelectPlace = (place: any) => {
+  const handleSelectPlace = (place: KakaoPlace) => {
     if (activeInput === "start") {
       setStart(place.place_name);
       setStartPlace(place);
