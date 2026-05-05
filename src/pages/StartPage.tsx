@@ -111,7 +111,7 @@ export default function StartPage() {
           disabled={isCheckingPermission}
           className="h-[62px] w-full cursor-pointer rounded-[10px] bg-[var(--GreenNormal)] text-[17px] font-semibold text-white transition-colors duration-200 hover:bg-[#4fb65e] disabled:cursor-not-allowed disabled:opacity-70"
         >
-          {isCheckingPermission ? "확인 중..." : "+ 첫 알림 만들기"}
+          {isCheckingPermission ? "+ 첫 알림 만들기" : "+ 첫 알림 만들기"}
         </button>
 
         {permissionMessage && (
