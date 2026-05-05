@@ -103,7 +103,7 @@ export default function RoutePage() {
     if (!mapRef.current) return;
 
     let cancelled = false;
-    const mapObj = "4:2:449:433";
+    const mapObj = "116:2:1510:1513@7:2:730:747";
 
     (async () => {
       const accessToken = localStorage.getItem("accessToken");
