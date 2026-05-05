@@ -1,3 +1,4 @@
+import { useNavigate } from "react-router-dom";
 import useCreateAlarmMutation from "../hooks/mutations/useCreateAlarmMutation";
 import {
   useAlarmArrivalTime,
@@ -40,6 +41,7 @@ function getDiffMinutesLabel(edt: string, eta: string) {
 }
 
 export default function NotificationSetting5Page() {
+  const navigate = useNavigate();
   const title = useAlarmTitle();
   const arrivalTime = useAlarmArrivalTime();
   const edt = useAlarmEdt();
@@ -261,7 +263,13 @@ export default function NotificationSetting5Page() {
         <button
           type="button"
           disabled={isCreateAlarmPending}
-          onClick={() => createAlarm()}
+          onClick={() =>
+            createAlarm(undefined, {
+              onSuccess: () => {
+                navigate("/");
+              },
+            })
+          }
           className="mt-auto h-[67px] w-full bg-(--GreenNormal) text-[17px] font-bold text-white"
         >
           {isCreateAlarmPending ? "알람 생성중" : "완료"}
