@@ -1,6 +1,7 @@
 import { Navigate, Route, Routes } from "react-router-dom";
 import "./App.css";
 import FcmAutoRegistration from "./components/fcm/FcmAutoRegistration";
+import HomePage from "./pages/HomePage";
 import LoginPage from "./pages/LoginPage";
 import NotificationSetting1Page from "./pages/NotificationSetting1Page";
 import { default as NotificationSetting2Page } from "./pages/NotificationSetting2Page";
@@ -25,7 +26,7 @@ function App() {
           path="/"
           element={
             <ProtectedRoute>
-              <Navigate to="/start" replace />
+              <HomePage />
             </ProtectedRoute>
           }
         />

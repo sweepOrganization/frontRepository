@@ -15,42 +15,5 @@ firebase.initializeApp({
 
 const messaging = firebase.messaging();
 
-messaging.onBackgroundMessage((payload) => {
-  const notification = payload?.notification ?? {};
-  const data = payload?.data ?? {};
-
-  const title = notification.title || data.title || "알림";
-  const body = notification.body || data.body || "";
-  const icon = notification.icon || data.icon || "/vite.svg";
-  const clickAction = data.click_action || data.url || "/";
-
-  self.registration.showNotification(title, {
-    body,
-    icon,
-    data: { clickAction },
-  });
-});
-
-self.addEventListener("notificationclick", (event) => {
-  event.notification.close();
-  const clickAction = event.notification?.data?.clickAction || "/";
-
-  event.waitUntil(
-    clients
-      .matchAll({ type: "window", includeUncontrolled: true })
-      .then((windowClients) => {
-        for (const client of windowClients) {
-          if ("focus" in client) {
-            client.navigate(clickAction);
-            return client.focus();
-          }
-        }
-
-        if (clients.openWindow) {
-          return clients.openWindow(clickAction);
-        }
-
-        return null;
-      }),
-  );
-});
+// Background notifications are handled by FCM notification payload.
+messaging.onBackgroundMessage(() => {});

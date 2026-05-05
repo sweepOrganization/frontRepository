@@ -6,16 +6,30 @@ export default function FcmAutoRegistration() {
   useEffect(() => {
     const unsubscribe = onMessage(messaging, (payload) => {
       console.log("Foreground push message:", payload);
+      console.log("Notification.permission:", Notification.permission);
 
-      if (Notification.permission !== "granted") return;
+      if (Notification.permission !== "granted") {
+        console.warn("Notification not shown: permission is not granted.");
+        return;
+      }
 
       const notification = payload?.notification ?? {};
-      const data = payload?.data ?? {};
-      const title = notification.title || data.title || "알림";
-      const body = notification.body || data.body || "";
-      const icon = notification.icon || data.icon || "/vite.svg";
+      const title = notification.title || "알림";
+      const body = notification.body || "";
+      const icon = notification.icon || "/vite.svg";
 
-      new Notification(title, { body, icon });
+      navigator.serviceWorker.ready
+        .then((registration) =>
+          registration.showNotification(title, { body, icon }),
+        )
+        .then(() => {
+          console.log(
+            "Foreground notification displayed via Service Worker API.",
+          );
+        })
+        .catch((error) => {
+          console.error("showNotification failed:", error);
+        });
     });
 
     return () => unsubscribe();
