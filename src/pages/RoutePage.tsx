@@ -47,17 +47,18 @@ type KakaoApi = {
   maps: KakaoMapsApi;
 };
 
-function getStrokeColorByTrafficType(trafficType?: number | string): string {
-  const type = Number(trafficType);
-  if (type === 0) return "#23d93e"; // unknown (current backend response)
-  if (type === 1) return "#23d93e"; // subway
-  if (type === 2) return "#2f80ed"; // bus
-  if (type === 3) return "#8e8e93"; // walk
-  return "#23d93e";
-}
-
-function getStrokeWeightByTrafficType(trafficType?: number | string): number {
-  return Number(trafficType) === 3 ? 3 : 5;
+function normalizeStrokeStyle(
+  strokeStyle?: string,
+): "solid" | "shortdash" | "shortdot" | "shortdashdot" {
+  if (
+    strokeStyle === "solid" ||
+    strokeStyle === "shortdash" ||
+    strokeStyle === "shortdot" ||
+    strokeStyle === "shortdashdot"
+  ) {
+    return strokeStyle;
+  }
+  return "solid";
 }
 
 declare global {
@@ -103,7 +104,7 @@ export default function RoutePage() {
     if (!mapRef.current) return;
 
     let cancelled = false;
-    const mapObj = "116:2:1510:1513@7:2:730:747";
+    const routePreviewId = "9912b639-49dc-49d5-b69e-d3c9f82beb00";
 
     (async () => {
       const accessToken = localStorage.getItem("accessToken");
@@ -117,7 +118,7 @@ export default function RoutePage() {
       const kakao = window.kakao;
 
       const res = await fetch(
-        `${import.meta.env.VITE_API_BASE_URL}/api/route/preview/${encodeURIComponent(mapObj)}`,
+        `${import.meta.env.VITE_API_BASE_URL}/api/route/preview/by-route/${routePreviewId}`,
         {
           method: "GET",
           headers: {
@@ -145,35 +146,15 @@ export default function RoutePage() {
         ),
       );
 
-      const stats = {
-        subway: 0,
-        bus: 0,
-        walk: 0,
-        unknown: 0,
-      };
-
       segments.forEach((seg) => {
-        const type = Number(seg.trafficType);
-        if (type === 1) stats.subway += 1;
-        else if (type === 2) stats.bus += 1;
-        else if (type === 3) stats.walk += 1;
-        else stats.unknown += 1;
-      });
-
-      const orderedSegments = [
-        ...segments.filter((seg) => Number(seg.trafficType) !== 3),
-        ...segments.filter((seg) => Number(seg.trafficType) === 3),
-      ];
-
-      orderedSegments.forEach((seg) => {
         const points = seg.points ?? [];
 
         new kakao.maps.Polyline({
           map,
           path: points.map((p) => new kakao.maps.LatLng(p.y, p.x)),
-          strokeColor: getStrokeColorByTrafficType(seg.trafficType),
-          strokeStyle: seg.strokeStyle,
-          strokeWeight: getStrokeWeightByTrafficType(seg.trafficType),
+          strokeColor: seg.color || "#23d93e",
+          strokeStyle: normalizeStrokeStyle(seg.strokeStyle),
+          strokeWeight: 5,
         }).setMap(map);
       });
     })().catch((error) => {
