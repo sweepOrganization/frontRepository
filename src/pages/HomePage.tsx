@@ -36,10 +36,18 @@ export default function HomePage() {
 
         const json = await res.json();
         const now = new Date();
-
-        const alarms = (
-          Array.isArray(json.data) ? json.data : json.data ? [json.data] : []
+        const detailAlarm = json?.data?.alarmDetailResponse;
+        const summaryAlarms = Array.isArray(
+          json?.data?.alarmSummaryResponseList,
         )
+          ? json.data.alarmSummaryResponseList
+          : [];
+        const sourceAlarms = [
+          ...(detailAlarm ? [detailAlarm] : []),
+          ...summaryAlarms,
+        ];
+
+        const alarms = sourceAlarms
           .filter((alarm: Alarm) => new Date(alarm.arrivalTime) > now)
           .sort(
             (a: Alarm, b: Alarm) =>
