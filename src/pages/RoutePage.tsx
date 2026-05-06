@@ -273,6 +273,16 @@ function formatDepartureHourMinute(departureTime?: string) {
   return `${hour}:${minute}`;
 }
 
+function formatActualTime(actualTime?: number) {
+  if (typeof actualTime !== "number" || Number.isNaN(actualTime)) return "0분";
+  if (actualTime < 60) return `${actualTime}분`;
+
+  const hours = Math.floor(actualTime / 60);
+  const minutes = actualTime % 60;
+  if (minutes === 0) return `${hours}시간`;
+  return `${hours}시간 ${minutes}분`;
+}
+
 export default function RoutePage() {
   const mapRef = useRef<HTMLDivElement | null>(null);
   const routeContentRef = useRef<HTMLDivElement | null>(null);
@@ -283,7 +293,7 @@ export default function RoutePage() {
     TransitBarSection[]
   >([]);
   const { data: detailAlarmData, isLoading } = useGetDetailAlarm({
-    alarmId: 46,
+    alarmId: 48,
   });
   const alarmDetail = detailAlarmData?.data;
   const requestRouteId = alarmDetail?.routeId;
@@ -586,7 +596,7 @@ export default function RoutePage() {
               </div>
               <div className="flex h-[34px] items-end gap-1">
                 <span className="text-[21px] leading-[21px] font-semibold text-(--Green)">
-                  {requestActualTime}분
+                  {formatActualTime(requestActualTime)}
                 </span>
                 <span className="self-end text-[15px] leading-[15px] font-semibold text-(--Lightgray)">
                   소요 예상
@@ -606,14 +616,14 @@ export default function RoutePage() {
                       className={`absolute left-1/2 w-[16px] -translate-x-1/2 rounded-[4px] ${section.colorClass}`}
                       style={{
                         top: `${section.top}px`,
-                        height: `${section.height}px`,
+                        height: `${section.height + 5}px`,
                         backgroundColor: section.backgroundColor,
                       }}
                     />
                     <div
                       className={`absolute left-1/2 flex h-5 w-5 -translate-x-1/2 items-center justify-center rounded-[6px] ${section.colorClass}`}
                       style={{
-                        top: `${section.top - 12}px`,
+                        top: `${section.top - 15}px`,
                         backgroundColor: section.backgroundColor,
                       }}
                     >
@@ -647,6 +657,9 @@ export default function RoutePage() {
                 {requestRouteSegments.map((segment, index) => {
                   // 도보
                   if (segment.trafficType === 3) {
+                    if ((segment.sectionTime ?? 0) <= 0) {
+                      return null;
+                    }
                     return (
                       <div key={`walk-${index}`}>
                         <div className="mt-2 h-[30px] text-[15px] leading-[15px] font-semibold">
