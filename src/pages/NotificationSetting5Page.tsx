@@ -9,6 +9,7 @@ import {
   useAlarmPrepareTime,
   useAlarmStartPlace,
   useAlarmTitle,
+  useResetAlarm,
 } from "../stores/useAlarmStore";
 
 function subtractMinutesFromTime(time: string, minutesToSubtract: number) {
@@ -50,10 +51,12 @@ export default function NotificationSetting5Page() {
   const startPlace = useAlarmStartPlace();
   const endPlace = useAlarmEndPlace();
   const interval = useAlarmInterval();
+  const resetAlarm = useResetAlarm();
   const { mutate: createAlarm, isPending: isCreateAlarmPending } =
     useCreateAlarmMutation({
       onSuccess: () => {
-        navigate("/");
+        resetAlarm();
+        navigate("/", { replace: true });
       },
     });
 

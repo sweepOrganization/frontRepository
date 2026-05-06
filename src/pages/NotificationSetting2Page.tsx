@@ -21,6 +21,19 @@ type KakaoKeywordSearchResponse = {
   documents?: KakaoPlace[];
 };
 
+type KakaoAddress = {
+  address_name: string;
+  x: string;
+  y: string;
+  road_address?: {
+    address_name?: string;
+  } | null;
+};
+
+type KakaoAddressSearchResponse = {
+  documents?: KakaoAddress[];
+};
+
 export default function NotificationStep2Page() {
   const setStartPlaceStore = useSetAlarmStartPlace();
   const setEndPlaceStore = useSetAlarmEndPlace();
@@ -45,20 +58,52 @@ export default function NotificationStep2Page() {
     }
 
     try {
-      const res = await fetch(
-        `https://dapi.kakao.com/v2/local/search/keyword.json?query=${encodeURIComponent(
-          keyword,
-        )}`,
-        {
-          headers: {
-            Authorization: `KakaoAK ${import.meta.env.VITE_KAKAO_API_KEY}`,
-          },
-        },
+      const headers = {
+        Authorization: `KakaoAK ${import.meta.env.VITE_KAKAO_API_KEY}`,
+      };
+
+      const [keywordRes, addressRes] = await Promise.all([
+        fetch(
+          `https://dapi.kakao.com/v2/local/search/keyword.json?query=${encodeURIComponent(
+            keyword,
+          )}`,
+          { headers },
+        ),
+        fetch(
+          `https://dapi.kakao.com/v2/local/search/address.json?query=${encodeURIComponent(
+            keyword,
+          )}`,
+          { headers },
+        ),
+      ]);
+
+      const keywordData: KakaoKeywordSearchResponse = keywordRes.ok
+        ? await keywordRes.json()
+        : { documents: [] };
+      const addressData: KakaoAddressSearchResponse = addressRes.ok
+        ? await addressRes.json()
+        : { documents: [] };
+
+      const keywordPlaces = keywordData.documents ?? [];
+      const addressPlaces: KakaoPlace[] = (addressData.documents ?? []).map(
+        (addr) => ({
+          id: `addr-${addr.x}-${addr.y}-${addr.address_name}`,
+          place_name: addr.road_address?.address_name || addr.address_name,
+          address_name: addr.address_name,
+          x: addr.x,
+          y: addr.y,
+        }),
       );
 
-      const data: KakaoKeywordSearchResponse = await res.json();
-      if (!res.ok) return setPlaces([]);
-      setPlaces(data.documents ?? []);
+      const deduped = new Map<string, KakaoPlace>();
+      [...keywordPlaces, ...addressPlaces].forEach((place) => {
+        const key = `${place.x}|${place.y}`;
+        if (!deduped.has(key)) {
+          deduped.set(key, place);
+        }
+      });
+
+      setPlaces(Array.from(deduped.values()));
     } catch {
       setPlaces([]);
     }
