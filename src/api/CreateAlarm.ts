@@ -1,4 +1,5 @@
-﻿import { useAlarmStore } from "../stores/useAlarmStore";
+import { useAlarmStore } from "../stores/useAlarmStore";
+import { updateActualTime } from "./UpdateActualTime";
 
 type CreateAlarmRequestBody = {
   routeId: number;
@@ -6,6 +7,8 @@ type CreateAlarmRequestBody = {
   checklist: string;
   arrivalTime: string;
   startTime: string;
+  startName: string;
+  endName: string;
   prepareTime: number;
   interval: number;
 };
@@ -28,7 +31,7 @@ function toStartTimeFromEdt(
 ) {
   const [datePart] = arrivalTime.split("T");
   if (!datePart) {
-    throw new Error("arrivalTime 형식이 올바르지 않습니다.");
+    throw new Error("arrivalTime format is invalid.");
   }
 
   const [hour = "00", minute = "00", second = "00"] = edt.split(":");
@@ -37,7 +40,7 @@ function toStartTimeFromEdt(
   );
 
   if (Number.isNaN(startDate.getTime())) {
-    throw new Error("EDT 형식이 올바르지 않습니다.");
+    throw new Error("edt format is invalid.");
   }
 
   startDate.setMinutes(startDate.getMinutes() - Math.max(0, prepareTime));
@@ -46,24 +49,36 @@ function toStartTimeFromEdt(
 
 export async function createAlarm() {
   const accessToken = localStorage.getItem("accessToken");
-  const baseUrl = import.meta.env.VITE_API_BASE_URL;
-  const { routeId, title, checklist, arrivalTime, edt, prepareTime, interval } =
-    useAlarmStore.getState();
+  const {
+    routeId,
+    title,
+    checklist,
+    arrivalTime,
+    edt,
+    eta,
+    prepareTime,
+    interval,
+    startPlace,
+    endPlace,
+  } = useAlarmStore.getState();
 
-  if (!baseUrl) {
-    throw new Error("VITE_API_BASE_URL이 설정되지 않았습니다.");
+  if (!import.meta.env.VITE_API_BASE_URL) {
+    throw new Error("VITE_API_BASE_URL is missing.");
   }
   if (!accessToken) {
-    throw new Error("accessToken이 없습니다.");
+    throw new Error("accessToken is missing.");
   }
   if (!routeId) {
-    throw new Error("routeId가 없습니다.");
+    throw new Error("routeId is missing.");
   }
   if (!arrivalTime) {
-    throw new Error("arrivalTime이 없습니다.");
+    throw new Error("arrivalTime is missing.");
   }
   if (!edt) {
-    throw new Error("edt가 없습니다.");
+    throw new Error("edt is missing.");
+  }
+  if (!eta) {
+    throw new Error("eta is missing.");
   }
 
   const body: CreateAlarmRequestBody = {
@@ -72,11 +87,13 @@ export async function createAlarm() {
     checklist,
     arrivalTime,
     startTime: toStartTimeFromEdt(arrivalTime, edt, prepareTime),
+    startName: startPlace,
+    endName: endPlace,
     prepareTime,
     interval,
   };
 
-  const response = await fetch(`${baseUrl.replace(/\/$/, "")}/alarm`, {
+  const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/alarm`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -86,8 +103,13 @@ export async function createAlarm() {
   });
 
   if (!response.ok) {
-    throw new Error("알림 생성 요청이 실패했습니다.");
+    throw new Error("Failed to create alarm.");
   }
 
-  return response.json();
+  const result = await response.json();
+  const alarmId = Number(result?.data?.alarmId);
+
+  await updateActualTime(alarmId);
+
+  return result;
 }

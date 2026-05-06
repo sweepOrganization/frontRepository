@@ -267,13 +267,7 @@ export default function NotificationSetting5Page() {
         <button
           type="button"
           disabled={isCreateAlarmPending}
-          onClick={() =>
-            createAlarm(undefined, {
-              onSuccess: () => {
-                navigate("/");
-              },
-            })
-          }
+          onClick={() => createAlarm()}
           className="mt-auto h-[67px] w-full bg-(--GreenNormal) text-[17px] font-bold text-white"
         >
           {isCreateAlarmPending ? "알람 생성중" : "완료"}
