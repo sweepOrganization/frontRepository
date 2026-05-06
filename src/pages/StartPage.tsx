@@ -92,13 +92,13 @@ export default function StartPage() {
             className="mb-[13px] w-[209px]"
           />
 
-          <h2 className="text-[23px] leading-[150%] font-semibold text-[var(--Normal)]">
+          <h2 className="text-[23px] leading-[150%] font-semibold text-(--Normal)">
             늦을까 걱정은
             <br />
             이제 그만해요
           </h2>
 
-          <p className="mt-[26px] text-[17px] leading-[155%] font-normal text-[var(--Lightgray)]">
+          <p className="mt-[26px] text-[17px] leading-[155%] font-normal text-(--Lightgray)">
             일정을 입력하면
             <br />
             출발 타이밍을 자동으로 계산해요
@@ -109,7 +109,7 @@ export default function StartPage() {
           type="button"
           onClick={handleCreateFirstAlarm}
           disabled={isCheckingPermission}
-          className="h-[62px] w-full cursor-pointer rounded-[10px] bg-[var(--GreenNormal)] text-[17px] font-semibold text-white transition-colors duration-200 hover:bg-[#4fb65e] disabled:cursor-not-allowed disabled:opacity-70"
+          className="h-[62px] w-full cursor-pointer rounded-[10px] bg-(--GreenNormal) text-[17px] font-semibold text-white transition-colors duration-200 hover:bg-[#4fb65e] disabled:cursor-not-allowed disabled:opacity-70"
         >
           {isCheckingPermission ? "+ 첫 알림 만들기" : "+ 첫 알림 만들기"}
         </button>
