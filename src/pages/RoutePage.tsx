@@ -17,6 +17,25 @@ type PreviewResponse = {
   segments: PreviewSegment[];
 };
 
+type RoutePagePoint = {
+  x: number;
+  y: number;
+};
+
+type RoutePageProps = {
+  arrivalTime?: string;
+  routePreviewId?: string;
+  routeId?: number | string;
+  routeType?: string;
+  startX?: number;
+  startY?: number;
+  endX?: number;
+  endY?: number;
+  totalTime?: number;
+  startPlace?: string | RoutePagePoint;
+  endPlace?: string | RoutePagePoint;
+};
+
 type KakaoLatLng = { __brand: "KakaoLatLng" };
 type KakaoLatLngBounds = { __brand: "KakaoLatLngBounds" };
 type KakaoMapInstance = {
@@ -97,14 +116,28 @@ function loadKakaoSdk(): Promise<void> {
   });
 }
 
-export default function RoutePage() {
+export default function RoutePage({
+  arrivalTime,
+  routePreviewId,
+  routeId,
+  routeType,
+  startX,
+  startY,
+  endX,
+  endY,
+  totalTime,
+  startPlace,
+  endPlace,
+}: RoutePageProps) {
   const mapRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     if (!mapRef.current) return;
 
     let cancelled = false;
-    const routePreviewId = "9912b639-49dc-49d5-b69e-d3c9f82beb00";
+    const previewId = String(
+      routePreviewId ?? "c8907657-f330-45f2-a3c9-30f8c840381c",
+    );
 
     (async () => {
       const accessToken = localStorage.getItem("accessToken");
@@ -118,7 +151,7 @@ export default function RoutePage() {
       const kakao = window.kakao;
 
       const res = await fetch(
-        `${import.meta.env.VITE_API_BASE_URL}/api/route/preview/by-route/${routePreviewId}`,
+        `${import.meta.env.VITE_API_BASE_URL}/api/route/preview/by-route/${previewId}`,
         {
           method: "GET",
           headers: {
@@ -164,12 +197,64 @@ export default function RoutePage() {
     return () => {
       cancelled = true;
     };
-  }, []);
+    void arrivalTime;
+    void routeType;
+    void startX;
+    void startY;
+    void endX;
+    void endY;
+    void totalTime;
+    void startPlace;
+    void endPlace;
+  }, [
+    routePreviewId,
+    routeId,
+    arrivalTime,
+    routeType,
+    startX,
+    startY,
+    endX,
+    endY,
+    totalTime,
+    startPlace,
+    endPlace,
+  ]);
 
   return (
-    <div>
+    <div className="flex h-screen flex-col">
       <Header />
       <div ref={mapRef} className="h-[285px] w-full" />
+      <div className="mx-4 mt-[14px] flex flex-1 flex-col overflow-y-auto">
+        <div className="flex flex-col gap-[14px]">
+          <div className="rounded-[9px] border border-(--Lightgray) px-4 py-[11px]">
+            <div className="flex w-full items-center">
+              <span className="flex-1 text-center text-[17px] leading-[17px] text-(--DarkGray)">
+                {arrivalTime}
+              </span>
+              <span className="h-4 w-px bg-(--Lightgray)" />
+              <span className="flex-1 text-center text-[17px] leading-[17px] text-(--DarkGray)">
+                {totalTime}
+              </span>
+            </div>
+          </div>
+
+          <div className="rounded-[9px] border border-(--Lightgray) px-4 py-[11px]">
+            <div className="flex w-full items-center">
+              <span className="flex-1 text-center text-[17px] leading-[17px] text-(--DarkGray)">
+                {startPlace ? startPlace.toString() : "출발지"}
+              </span>
+              <img
+                src="/bidirectionalarrow.svg"
+                alt="출발지 도착지 방향"
+                className="mx-2 h-4 w-4 shrink-0"
+              />
+              <span className="flex-1 text-center text-[17px] leading-[17px] text-(--DarkGray)">
+                {endPlace ? endPlace.toString() : "도착지"}
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
