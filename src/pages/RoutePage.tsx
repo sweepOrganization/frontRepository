@@ -1,5 +1,7 @@
 import { useEffect, useRef } from "react";
 import Header from "../components/Header";
+import useGetDetailAlarm from "../hooks/queries/useGetDetailAlarm";
+import useGetDetailRoute from "../hooks/queries/useGetDetailRoute";
 
 type PreviewPoint = { x: number; y: number };
 type PreviewBounds = {
@@ -10,25 +12,21 @@ type PreviewSegment = {
   points: PreviewPoint[];
   color: string;
   strokeStyle: "solid" | "shortdash" | "shortdot" | "shortdashdot";
-  trafficType?: number | string;
 };
 type PreviewResponse = {
   bounds: PreviewBounds;
   segments: PreviewSegment[];
 };
 
+type NormalizedRouteData = {
+  segments: unknown[];
+  [key: string]: unknown;
+};
+
 type RoutePageProps = {
-  arrivalTime?: string;
-  routePreviewId?: string;
+  alarmId?: number;
   routeId?: number | string;
   routeType?: string;
-  startX?: number;
-  startY?: number;
-  endX?: number;
-  endY?: number;
-  actualTime?: number;
-  startName?: string;
-  endName?: string;
 };
 
 type KakaoLatLng = { __brand: "KakaoLatLng" };
@@ -111,21 +109,80 @@ function loadKakaoSdk(): Promise<void> {
   });
 }
 
+function normalizeRouteData(routeData?: string): NormalizedRouteData | null {
+  if (!routeData) return null;
+
+  try {
+    const parsed = JSON.parse(routeData) as {
+      segments?: unknown;
+      [key: string]: unknown;
+    };
+
+    const rawSegments = parsed.segments;
+    const segments =
+      Array.isArray(rawSegments) && Array.isArray(rawSegments[1])
+        ? rawSegments[1]
+        : Array.isArray(rawSegments)
+          ? rawSegments
+          : [];
+
+    return {
+      ...parsed,
+      segments,
+    };
+  } catch (error) {
+    console.error("routeData parse error", error);
+    return null;
+  }
+}
+
 export default function RoutePage({
-  arrivalTime,
-  routePreviewId,
+  alarmId,
   routeId,
   routeType,
-  startX,
-  startY,
-  endX,
-  endY,
-  actualTime,
-  startName,
-  endName,
 }: RoutePageProps) {
   const mapRef = useRef<HTMLDivElement | null>(null);
-  const parsedArrival = arrivalTime ? new Date(arrivalTime) : null;
+  const fallbackRouteData =
+    '{"@type": "bus", "mapObj": "1054:1:57:66@1055:1:57:69", "payment": 1600, "routeId": 354, "segments": ["java.util.ArrayList", [{"@type": "walk", "distance": 170, "sectionTime": 3, "trafficType": 3}, {"@type": "bus", "busNo": "420", "busType": 11, "endStop": "신사역.푸른저축은행", "distance": 8244, "startStop": "동대문역.흥인지문", "busRouteId": 1054, "localBusId": "100100068", "sectionTime": 25, "startStopId": 80606, "trafficType": 2, "stationCount": 9, "startStopOrder": 0, "busProviderCode": 4, "localBusStationId": "100000365", "stationProviderCode": 4}, {"@type": "walk", "distance": 134, "sectionTime": 2, "trafficType": 3}, {"@type": "bus", "busNo": "4212", "busType": 12, "endStop": "사당역", "distance": 6626, "startStop": "신사역4번출구", "busRouteId": 1055, "localBusId": "100100234", "sectionTime": 24, "startStopId": 105855, "trafficType": 2, "stationCount": 12, "startStopOrder": 0, "busProviderCode": 4, "localBusStationId": "121000109", "stationProviderCode": 4}, {"@type": "walk", "distance": 182, "sectionTime": 3, "trafficType": 3}]], "totalTime": 57, "totalWalk": 486, "transferCount": 1, "routePreviewId": null, "busTransitCount": 2}';
+
+  const { data: detailAlarmData } = useGetDetailAlarm({ alarmId });
+  const alarmDetail = detailAlarmData?.data;
+
+  const requestRouteId = alarmDetail?.routeId;
+  const requestType = alarmDetail?.routeType;
+  const requestStartX = alarmDetail?.startX;
+  const requestStartY = alarmDetail?.startY;
+  const requestEndX = alarmDetail?.endX;
+  const requestEndY = alarmDetail?.endY;
+  const requestArrivalTime = alarmDetail?.arrivalTime;
+
+  const { data: detailRouteData } = useGetDetailRoute({
+    routeId: requestRouteId,
+    type: requestType,
+    startX: requestStartX,
+    startY: requestStartY,
+    endX: requestEndX,
+    endY: requestEndY,
+    arrivalTime: requestArrivalTime,
+  });
+
+  const routeDetail = detailRouteData?.data;
+  const displayArrivalTime =
+    routeDetail?.arrivalTime ?? alarmDetail?.arrivalTime;
+  const displayStartName = alarmDetail?.startName;
+  const displayEndName = alarmDetail?.endName;
+  const normalizedRouteData = normalizeRouteData(
+    alarmDetail?.routeData ?? fallbackRouteData,
+  );
+  const mapObj =
+    typeof normalizedRouteData?.mapObj === "string"
+      ? normalizedRouteData.mapObj
+      : null;
+  console.log("normalizedRouteData:", normalizedRouteData);
+
+  const parsedArrival = displayArrivalTime
+    ? new Date(displayArrivalTime)
+    : null;
   const hasValidArrival =
     parsedArrival instanceof Date && !Number.isNaN(parsedArrival.getTime());
   const formattedArrivalDate = hasValidArrival
@@ -142,28 +199,28 @@ export default function RoutePage({
         hour12: false,
       })
     : "";
+  void routeId;
+  void routeType;
 
   useEffect(() => {
-    if (!mapRef.current) return;
+    if (!mapRef.current || !mapObj) return;
 
     let cancelled = false;
-    const previewId = String(
-      routePreviewId ?? "c8907657-f330-45f2-a3c9-30f8c840381c",
-    );
 
     (async () => {
       const accessToken = localStorage.getItem("accessToken");
       if (!accessToken) {
-        throw new Error("accessToken이 없습니다. 먼저 로그인해주세요.");
+        throw new Error("accessToken is missing.");
       }
 
       await loadKakaoSdk();
       if (cancelled || !mapRef.current) return;
 
       const kakao = window.kakao;
+      if (!kakao) return;
 
       const res = await fetch(
-        `${import.meta.env.VITE_API_BASE_URL}/api/route/preview/by-route/${previewId}`,
+        `${import.meta.env.VITE_API_BASE_URL}/api/route/preview/${encodeURIComponent(mapObj)}`,
         {
           method: "GET",
           headers: {
@@ -174,6 +231,7 @@ export default function RoutePage({
       if (!res.ok) {
         throw new Error(`Route preview failed: ${res.status}`);
       }
+
       const { bounds, segments } = (await res.json()) as PreviewResponse;
       if (cancelled) return;
 
@@ -193,7 +251,6 @@ export default function RoutePage({
 
       segments.forEach((seg) => {
         const points = seg.points ?? [];
-
         new kakao.maps.Polyline({
           map,
           path: points.map((p) => new kakao.maps.LatLng(p.y, p.x)),
@@ -209,28 +266,7 @@ export default function RoutePage({
     return () => {
       cancelled = true;
     };
-    void arrivalTime;
-    void routeType;
-    void startX;
-    void startY;
-    void endX;
-    void endY;
-    void actualTime;
-    void startName;
-    void endName;
-  }, [
-    routePreviewId,
-    routeId,
-    arrivalTime,
-    routeType,
-    startX,
-    startY,
-    endX,
-    endY,
-    actualTime,
-    startName,
-    endName,
-  ]);
+  }, [mapObj]);
 
   return (
     <div className="flex h-screen flex-col">
@@ -254,7 +290,7 @@ export default function RoutePage({
             <div className="mb-5 rounded-[9px] border border-(--Lightgray) px-4 py-[11px]">
               <div className="flex w-full items-center">
                 <span className="flex-1 text-center text-[17px] leading-[17px] text-(--DarkGray)">
-                  {startName ? startName : "출발지"}
+                  {displayStartName ? displayStartName : "출발지"}
                 </span>
                 <img
                   src="/bidirectionalarrow.svg"
@@ -262,7 +298,7 @@ export default function RoutePage({
                   className="mx-2 h-4 w-4 shrink-0"
                 />
                 <span className="flex-1 text-center text-[17px] leading-[17px] text-(--DarkGray)">
-                  {endName ? endName : "도착지"}
+                  {displayEndName ? displayEndName : "도착지"}
                 </span>
               </div>
             </div>
