@@ -356,7 +356,7 @@ export default function RoutePage() {
     TransitBarSection[]
   >([]);
   const { data: detailAlarmData, isLoading } = useGetDetailAlarm({
-    alarmId: 48,
+    alarmId: 49,
   });
   const alarmDetail = detailAlarmData?.data;
   const requestRouteId = alarmDetail?.routeId;
