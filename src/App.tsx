@@ -9,6 +9,7 @@ import NotificationSetting3Page from "./pages/NotificationSetting3Page";
 import NotificationSetting4Page from "./pages/NotificationSetting4Page";
 import NotificationSetting5Page from "./pages/NotificationSetting5Page";
 import OAuthCallbackPage from "./pages/OAuthCallbackPage";
+import RoutePage from "./pages/RoutePage";
 import StartPage from "./pages/StartPage";
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
@@ -75,6 +76,14 @@ function App() {
           element={
             <ProtectedRoute>
               <NotificationSetting5Page />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/route/:alarmId"
+          element={
+            <ProtectedRoute>
+              <RoutePage />
             </ProtectedRoute>
           }
         />
