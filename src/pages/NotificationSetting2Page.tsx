@@ -102,7 +102,7 @@ export default function NotificationStep2Page() {
     const regex = new RegExp(`(${keyword})`, "gi");
     return text.split(regex).map((part, i) =>
       part.toLowerCase() === keyword.toLowerCase() ? (
-        <span key={i} className="text-[var(--GreenNormal)]">
+        <span key={i} className="text-(--GreenNormal)">
           {part}
         </span>
       ) : (
@@ -122,7 +122,7 @@ export default function NotificationStep2Page() {
           출발지와 일정 장소는 어디인가요?
         </h1>
 
-        <p className="mt-1 text-[15px] font-normal text-[var(--Lightgray)]">
+        <p className="mt-1 text-[15px] font-normal text-(--Lightgray)">
           최적의 경로를 찾아드릴게요
         </p>
 
@@ -133,18 +133,18 @@ export default function NotificationStep2Page() {
               <div
                 className={`h-2 w-2 rounded-full border transition-colors duration-200 ${
                   activeInput === "start"
-                    ? "border-[var(--GreenNormal)] bg-[var(--GreenNormal)]"
-                    : "border-[var(--GreenNormal)] bg-transparent"
+                    ? "border-(--GreenNormal) bg-(--GreenNormal)"
+                    : "border-(--GreenNormal) bg-transparent"
                 }`}
               />
 
-              <div className="h-[50px] w-[1px] bg-[#E4E4E4]" />
+              <div className="h-[50px] w-px bg-[#E4E4E4]" />
 
               <div
                 className={`h-2 w-2 rounded-full border transition-colors duration-200 ${
                   activeInput === "end"
-                    ? "border-[var(--GreenNormal)] bg-[var(--GreenNormal)]"
-                    : "border-[var(--GreenNormal)] bg-transparent"
+                    ? "border-(--GreenNormal) bg-(--GreenNormal)"
+                    : "border-(--GreenNormal) bg-transparent"
                 }`}
               />
             </div>
@@ -157,7 +157,7 @@ export default function NotificationStep2Page() {
               onFocus={() => setActiveInput("start")}
               onChange={(e) => handleSearch(e.target.value, "start")}
               placeholder="출발지를 입력해주세요"
-              className="h-[48px] rounded-lg border border-[var(--GreenLightActive)] bg-white px-4 text-[17px] font-normal outline-none placeholder:font-normal placeholder:text-[var(--Gray)] focus:border-[var(--GreenNormal)]"
+              className="h-[48px] rounded-lg border border-(--GreenLightActive) bg-white px-4 text-[17px] font-normal outline-none placeholder:font-normal placeholder:text-(--Gray) focus:border-(--GreenNormal)"
             />
 
             <input
@@ -165,7 +165,7 @@ export default function NotificationStep2Page() {
               onFocus={() => setActiveInput("end")}
               onChange={(e) => handleSearch(e.target.value, "end")}
               placeholder="도착지를 입력해주세요"
-              className="h-[48px] rounded-lg border border-[var(--GreenLightActive)] bg-white px-4 text-[17px] font-normal outline-none placeholder:font-normal placeholder:text-[var(--Gray)] focus:border-[var(--GreenNormal)]"
+              className="h-[48px] rounded-lg border border-(--GreenLightActive) bg-white px-4 text-[17px] font-normal outline-none placeholder:font-normal placeholder:text-(--Gray) focus:border-(--GreenNormal)"
             />
           </div>
         </div>
@@ -206,7 +206,7 @@ export default function NotificationStep2Page() {
       {/* 버튼 */}
       <div className="fixed right-0 bottom-0 left-0 bg-white">
         <div className="h-1.5 w-full rounded-full bg-[#e4e4e4]">
-          <div className="h-full w-2/4 rounded-full bg-[var(--GreenNormal)]" />
+          <div className="h-full w-2/4 rounded-full bg-(--GreenNormal)" />
         </div>
 
         <button
@@ -226,8 +226,8 @@ export default function NotificationStep2Page() {
           }}
           className={`h-[67px] w-full text-[17px] font-bold ${
             !isActive
-              ? "bg-[var(--GreenLight)] text-[#b1d8b6]"
-              : "bg-[var(--GreenNormal)] text-white"
+              ? "bg-(--GreenLight) text-[#b1d8b6]"
+              : "bg-(--GreenNormal) text-white"
           }`}
         >
           경로 보기
