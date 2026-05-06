@@ -5,10 +5,18 @@ import Duck from "../components/HomePage/Duck";
 type Alarm = {
   alarmId: number;
   title: string;
+  routeData?: string;
   arrivalTime: string;
   startTime: string;
   prepareTime?: number;
   totalTime?: number;
+  actualTime?: number;
+  routeId?: number;
+  routeType?: string;
+  startX?: number;
+  startY?: number;
+  endX?: number;
+  endY?: number;
 };
 
 export default function HomePage() {
@@ -16,6 +24,9 @@ export default function HomePage() {
 
   const [mainAlarm, setMainAlarm] = useState<Alarm | null>(null);
   const [alarmList, setAlarmList] = useState<Alarm[]>([]);
+  const [busInfo, setBusInfo] = useState<any>(null);
+  const [remainSeconds, setRemainSeconds] = useState<number | null>(null);
+  const [testProgress, setTestProgress] = useState(0);
 
   useEffect(() => {
     const getAlarms = async () => {
@@ -42,6 +53,7 @@ export default function HomePage() {
         )
           ? json.data.alarmSummaryResponseList
           : [];
+
         const sourceAlarms = [
           ...(detailAlarm ? [detailAlarm] : []),
           ...summaryAlarms,
@@ -104,36 +116,181 @@ export default function HomePage() {
     });
   };
 
-  const isOneHourBefore = (startTime: string) => {
+  const getMinutesUntilStart = (startTime: string) => {
     const now = new Date();
     const start = new Date(startTime);
 
-    const diff = (start.getTime() - now.getTime()) / (1000 * 60);
-
-    return diff <= 60;
+    return Math.max(
+      0,
+      Math.ceil((start.getTime() - now.getTime()) / (1000 * 60)),
+    );
   };
 
+  const isOneHourBefore = (startTime: string) => {
+    return getMinutesUntilStart(startTime) <= 60;
+  };
+
+  const formatRemainTime = (seconds: number | null) => {
+    if (seconds === null) return "-";
+
+    const min = Math.floor(seconds / 60);
+    const sec = seconds % 60;
+
+    return `${min}분 ${sec}초`;
+  };
+
+  const fetchBusInfo = async () => {
+    if (!mainAlarm) return;
+    if (mainAlarm.routeType !== "PATH_TYPE_BUS") return;
+
+    const token = localStorage.getItem("accessToken");
+    if (!token) return;
+
+    try {
+      const res = await fetch(
+        `${import.meta.env.VITE_API_BASE_URL}/route/bus/arrival?stId=${busInfo?.localBusStation}&busRouteId=${busInfo?.localBus}&ord=0&providerCode=4`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      );
+
+      const json = await res.json();
+      console.log("실시간 정보:", json.data);
+
+      setBusInfo(json.data);
+      setRemainSeconds(json.data?.remainSeconds ?? null);
+    } catch (error) {
+      console.error("실시간 정보 조회 실패", error);
+    }
+  };
+
+  useEffect(() => {
+    if (!mainAlarm) return;
+    if (!isOneHourBefore(mainAlarm.startTime)) return;
+
+    fetchBusInfo();
+  }, [mainAlarm]);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setTestProgress((prev) => {
+        if (prev >= 100) return 100;
+        return prev + 100 / 1800;
+      });
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, []);
+
+  useEffect(() => {
+    if (remainSeconds === null) return;
+
+    const timer = setInterval(() => {
+      setRemainSeconds((prev) => {
+        if (prev === null) return null;
+        return Math.max(0, prev - 1);
+      });
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [remainSeconds]);
+
+  const parsedRouteData = mainAlarm?.routeData
+    ? JSON.parse(mainAlarm.routeData)
+    : null;
+
+  const subwaySegment = parsedRouteData?.segments?.[1]?.find(
+    (segment: any) => segment.trafficType === 1,
+  );
+
+  const subwayLineColorMap: Record<string, string> = {
+    "1호선": "var(--line-1)",
+    "2호선": "var(--line-2)",
+    "3호선": "var(--line-3)",
+    "4호선": "var(--line-4)",
+    "5호선": "var(--line-5)",
+    "6호선": "var(--line-6)",
+    "7호선": "var(--line-7)",
+    "8호선": "var(--line-8)",
+    "9호선": "var(--line-9)",
+    경의중앙선: "var(--line-gyeongui)",
+    경춘선: "var(--line-gyeongchun)",
+    수인분당선: "var(--line-su-in-bundang)",
+    신분당선: "var(--line-sinbundang)",
+    경강선: "var(--line-gyeonggang)",
+    서해선: "var(--line-seohae)",
+    공항철도: "var(--line-airport)",
+    우이신설선: "var(--line-ui-sinseol)",
+    김포골드라인: "var(--line-gimpo-gold)",
+  };
+
+  const subwayLineName = subwaySegment?.lineName?.replace("수도권 ", "") || "";
+
+  const subwayLineColor = subwayLineColorMap[subwayLineName] || "var(--line-2)";
+  const busColorMap: Record<string, string> = {
+    광역버스: "var(--bus-red)",
+    간선버스: "var(--bus-blue)",
+    지선버스: "var(--bus-green)",
+    순환버스: "var(--bus-yellow)",
+    마을버스: "var(--bus-sky)",
+  };
+
+  const busType = mainAlarm?.title || "";
+
+  const busColor = busColorMap[busType] || "var(--bus-red)";
   if (!mainAlarm) return null;
 
+  const startedMinutesAgo = Math.floor(
+    (new Date().getTime() - new Date(mainAlarm.startTime).getTime()) /
+      (1000 * 60),
+  );
+
+  const isStartedRecently = startedMinutesAgo >= 0 && startedMinutesAgo <= 10;
+  const rawProgress = testProgress;
+  const progressPercent = `${Math.max(0, Math.min(100, rawProgress))}%`;
+  const testOneHourBefore = isOneHourBefore(mainAlarm.startTime);
+
   return (
-    <div className="relative min-h-screen bg-[#fafafa] px-4 pt-[53px] pb-[100px]">
-      {/* 상단 카드 */}
+    <div className="relative min-h-screen bg-[#FBFBFB] px-4 pt-[53px] pb-[100px]">
       <section className="rounded-[10px] bg-gradient-to-r from-[#50C864] to-[#80DF7C] px-[10px] pt-[10px] pb-[12px]">
         <h1 className="text-[21px] leading-[150%] font-semibold text-white">
-          일정을 확인해보세요
+          {testProgress >= 100
+            ? "출발 하셨나요?"
+            : testProgress >= 50
+              ? `출발까지 ${Math.ceil(30 - ((testProgress - 50) / 50) * 30)}분 남았어요`
+              : testProgress > 0
+                ? `${Math.ceil(60 - (testProgress / 100) * 60)}분 후에 출발해야해요`
+                : "일정을 확인해보세요"}
         </h1>
 
-        <div className="mt-[12px]">
-          <Duck />
+        <div className="relative mt-[8px] h-[39px] w-full">
+          <div
+            className="absolute top-0 transition-all duration-700"
+            style={{ left: `calc(${progressPercent} - 18px)` }}
+          >
+            <Duck
+              image={
+                rawProgress >= 35
+                  ? "/duck-03.svg"
+                  : rawProgress > 0
+                    ? "/duck-02.svg"
+                    : "/duck-01.svg"
+              }
+            />
+          </div>
         </div>
 
-        <div className="mt-[8px] h-[8px] w-full rounded-full bg-white/40">
-          <div className="h-full w-[78%] rounded-full bg-white/55" />
+        <div className="mt-[4px] h-[8px] w-full rounded-full bg-white/40">
+          <div
+            className="h-full rounded-full bg-white transition-all duration-700"
+            style={{ width: progressPercent }}
+          />
         </div>
       </section>
 
-      {/* 오늘 일정 카드 */}
-      <section className="mt-[58px] rounded-[10px] border border-[#e4e4e4] bg-white">
+      <section className="mt-[20px] rounded-[10px] border border-[#e4e4e4] bg-white">
         <div className="px-[26px] pt-[21px] pb-[30px]">
           <div className="flex items-center justify-between">
             <p className="text-[15px] font-medium text-[var(--Darkgray)]">
@@ -142,35 +299,61 @@ export default function HomePage() {
             <button className="text-[22px] text-[#999]">...</button>
           </div>
 
-          <div className="mt-[12px] flex items-center gap-[13px]">
+          <div className="mt-[10px] flex items-center gap-[13px]">
             <span className="rounded-[5px] bg-[#EFF9F0] px-[7px] py-[4px] text-[13px] font-semibold text-[var(--Green)]">
               일정 {formatTime(mainAlarm.arrivalTime)}
             </span>
-            <span className="text-[17px] font-medium text-[#333]">
+            <span className="text-[17px] font-medium text-[var(--Neutral)]">
               {mainAlarm.title}
             </span>
           </div>
 
-          <div className="mt-[38px]">
-            <p className="text-[19px] font-semibold text-[#222]">준비 시작</p>
+          <div className="mt-[38px] flex items-end justify-between">
+            <div className="flex w-[95px] flex-col items-start">
+              <div className="flex items-center gap-[8px]">
+                {isStartedRecently && (
+                  <div className="h-[12px] w-[12px] rounded-full bg-[#FF7A00] shadow-[0_0_0_6px_rgba(255,122,0,0.15)]" />
+                )}
 
-            <div className="mt-[4px] flex items-center">
-              <span className="text-[38px] font-semibold text-[#222]">
+                <p
+                  className={`text-[19px] font-semibold ${
+                    isStartedRecently ? "text-[#FF7A00]" : "text-[#222]"
+                  }`}
+                >
+                  출발
+                </p>
+              </div>
+
+              <span className="mt-[4px] text-[38px] font-semibold text-[#222]">
                 {formatTime(mainAlarm.startTime)}
               </span>
+            </div>
 
-              <span className="mx-[12px] h-[1px] w-[21px] bg-[#ddd]" />
+            <div className="mb-[10px] flex flex-col items-center">
+              <div className="flex items-center gap-[10px]">
+                <span className="h-[1px] w-[21px] bg-[#ddd]" />
 
-              <span className="text-[12px] text-[#777]">
-                {mainAlarm.totalTime ? `${mainAlarm.totalTime}분` : ""}
-              </span>
+                <span className="text-[12px] text-[#777]">
+                  {(mainAlarm.actualTime ?? mainAlarm.totalTime)
+                    ? `${Math.floor((mainAlarm.actualTime ?? mainAlarm.totalTime ?? 0) / 60)}시간 ${
+                        (mainAlarm.actualTime ?? mainAlarm.totalTime ?? 0) % 60
+                      }분`
+                    : ""}
+                </span>
 
-              <span className="mx-[12px] h-[1px] w-[21px] bg-[#ddd]" />
+                <span className="text-[#ddd]">→</span>
+              </div>
 
-              <span className="text-[38px] font-light text-[#888]">
+              <span className="text-[12px] text-[#777]">소요</span>
+            </div>
+
+            <div className="mr-[20px] flex flex-col items-start">
+              <p className="text-[15px] font-medium text-[#888]">도착 예정</p>
+
+              <span className="mt-[4px] text-[38px] font-light text-[#888]">
                 {getExpectedArrivalTime(
                   mainAlarm.startTime,
-                  mainAlarm.totalTime,
+                  mainAlarm.actualTime ?? mainAlarm.totalTime,
                 )}
               </span>
             </div>
@@ -179,27 +362,137 @@ export default function HomePage() {
 
         <div className="border-t border-[#e4e4e4] bg-[#F9F9F9] px-[26px] pt-[22px] pb-[16px]">
           <div className="flex items-start gap-[20px]">
-            <span className="mt-[10px] rounded-[5px] bg-[#FF5B5B] px-[4px] py-[3.5px] text-[13px] font-semibold text-white">
-              광역버스
-            </span>
+            {mainAlarm.routeType === "PATH_TYPE_BUS" && (
+              <span
+                className="mt-[10px] rounded-[5px] px-[8px] py-[5px] text-[13px] font-semibold text-white"
+                style={{
+                  backgroundColor: busColor,
+                }}
+              >
+                {busType}
+              </span>
+            )}
 
-            {isOneHourBefore(mainAlarm.startTime) ? (
-              <p className="text-[15px] leading-[160%] font-normal text-[var(--Darkgray)]">
-                실시간 교통 정보 표시중 🚍
-              </p>
+            {testOneHourBefore ? (
+              mainAlarm.routeType === "PATH_TYPE_BUS" ? (
+                <div className="flex flex-1 items-center justify-between">
+                  <div>
+                    <p className="text-[19px] font-semibold text-[#333]">
+                      {formatRemainTime(remainSeconds)}
+                    </p>
+                    <p className="mt-[4px] text-[15px] text-[#777]">3번째 전</p>
+                  </div>
+
+                  <div className="h-[58px] w-[1px] bg-[#e4e4e4]" />
+
+                  <div>
+                    <p className="text-[19px] font-semibold text-[#333]">
+                      {busInfo?.nextRemainSeconds
+                        ? formatRemainTime(busInfo.nextRemainSeconds)
+                        : "-"}
+                    </p>
+                    <p className="mt-[4px] text-[15px] text-[#777]">8번째 전</p>
+                  </div>
+
+                  <button type="button" onClick={fetchBusInfo}>
+                    <img
+                      src="/refresh.svg"
+                      alt="새로고침"
+                      className="h-[44px] w-[44px]"
+                    />
+                  </button>
+                </div>
+              ) : (
+                <div className="flex flex-1 flex-col">
+                  <div className="flex items-start justify-between">
+                    <div className="flex items-center gap-[8px]">
+                      <span
+                        className="rounded-[5px] px-[6px] py-[3px] text-[13px] font-semibold text-white"
+                        style={{
+                          backgroundColor: subwayLineColor,
+                        }}
+                      >
+                        {subwaySegment?.lineName?.replace("수도권 ", "")}
+                      </span>
+
+                      <span className="text-[17px] font-semibold text-[#333]">
+                        {subwaySegment?.startStation}역
+                      </span>
+                    </div>
+
+                    <button type="button" onClick={fetchBusInfo}>
+                      <img
+                        src="/refresh.svg"
+                        alt="새로고침"
+                        className="mt-[5px] h-[16px] w-[16px]"
+                      />
+                    </button>
+                  </div>
+
+                  <div className="mt-[10px] text-center">
+                    <p className="text-[17px] font-semibold text-[#F60707]">
+                      {subwaySegment?.sectionTime}분
+                    </p>
+
+                    <p className="mt-[3px] text-[13px] text-[#8F0303]">
+                      {subwaySegment?.stationCount}번째 전
+                    </p>
+                  </div>
+                </div>
+              )
             ) : (
-              <p className="text-[15px] leading-[160%] font-normal text-[var(--Darkgray)]">
-                출발 1시간 전,
-                <br />
-                실시간 교통 정보가 표시됩니다
-              </p>
+              <div className="flex items-start gap-[16px]">
+                {mainAlarm.routeType === "PATH_TYPE_BUS" && (
+                  <span
+                    className="mt-[2px] rounded-[5px] px-[8px] py-[5px] text-[13px] font-semibold text-white"
+                    style={{
+                      backgroundColor: busColor,
+                    }}
+                  >
+                    {busType}
+                  </span>
+                )}
+
+                {mainAlarm.routeType === "PATH_TYPE_SUBWAY" && (
+                  <span
+                    className="mt-[10px] rounded-[5px] px-[6px] py-[3px] text-[13px] font-semibold text-white"
+                    style={{
+                      backgroundColor: subwayLineColor,
+                    }}
+                  >
+                    {subwayLineName}
+                  </span>
+                )}
+
+                <p className="text-[15px] leading-[160%] font-normal text-[var(--Darkgray)]">
+                  출발 1시간 전,
+                  <br />
+                  실시간 교통 정보가 표시됩니다
+                </p>
+              </div>
             )}
           </div>
 
           <button
             type="button"
-            onClick={() => navigate("/route")}
-            className="mt-[16px] h-[44px] w-full rounded-[10px] border border-[#39C75A] text-[17px] font-semibold text-[#00A12B]"
+            onClick={() => {
+              navigate(`/route/${mainAlarm.alarmId}`, {
+                state: {
+                  alarmId: mainAlarm.alarmId,
+                  arrivalTime: mainAlarm.arrivalTime,
+                  startTime: mainAlarm.startTime,
+                  totalTime: mainAlarm.totalTime,
+                  actualTime: mainAlarm.actualTime,
+                  routeId: mainAlarm.routeId,
+                  routeType: mainAlarm.routeType,
+                  startX: mainAlarm.startX,
+                  startY: mainAlarm.startY,
+                  endX: mainAlarm.endX,
+                  endY: mainAlarm.endY,
+                },
+              });
+            }}
+            className="mt-[22px] h-[48px] w-full rounded-[10px] border border-[#39C75A] bg-white text-[17px] font-semibold text-[#00A12B]"
           >
             경로 보기
           </button>
@@ -235,7 +528,6 @@ export default function HomePage() {
         </section>
       ))}
 
-      {/* 플로팅 추가 버튼 */}
       <button
         type="button"
         onClick={() => navigate("/notification-setting")}
