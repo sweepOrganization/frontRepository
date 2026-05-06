@@ -14,3 +14,6 @@ firebase.initializeApp({
 });
 
 const messaging = firebase.messaging();
+
+// Background notifications are handled by FCM notification payload.
+messaging.onBackgroundMessage(() => {});

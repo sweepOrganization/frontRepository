@@ -7,6 +7,7 @@ import {
   useSetAlarmEdt,
   useSetAlarmEta,
   useSetAlarmRouteId,
+  useSetAlarmRoutePreviewId,
 } from "../stores/useAlarmStore";
 import type { BoardingInfo, TrafficResponse } from "../types/route";
 
@@ -28,6 +29,7 @@ export default function NotificationSetting3Page() {
     useState<PathType>("PATH_TYPE_SUBWAY");
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
   const setAlarmRouteId = useSetAlarmRouteId();
+  const setAlarmRoutePreviewId = useSetAlarmRoutePreviewId();
   const setAlarmEdt = useSetAlarmEdt();
   const setAlarmEta = useSetAlarmEta();
 
@@ -69,6 +71,7 @@ export default function NotificationSetting3Page() {
               setSelectedPathType("PATH_TYPE_SUBWAY");
               setSelectedIndex(null);
               setAlarmRouteId(null);
+              setAlarmRoutePreviewId(null);
               setAlarmEdt("");
               setAlarmEta("");
             }}
@@ -86,6 +89,7 @@ export default function NotificationSetting3Page() {
               setSelectedPathType("PATH_TYPE_BUS");
               setSelectedIndex(null);
               setAlarmRouteId(null);
+              setAlarmRoutePreviewId(null);
               setAlarmEdt("");
               setAlarmEta("");
             }}
@@ -120,7 +124,12 @@ export default function NotificationSetting3Page() {
                     nextIndex !== null
                       ? (trafficResponseList[nextIndex]?.routeId ?? null)
                       : null;
+                  const nextRoutePreviewId =
+                    nextIndex !== null
+                      ? (trafficResponseList[nextIndex]?.routePreviewId ?? null)
+                      : null;
                   setAlarmRouteId(nextRouteId);
+                  setAlarmRoutePreviewId(nextRoutePreviewId);
                   if (nextIndex !== null) {
                     const selectedBoardingInfo = boardingInfos[nextIndex];
                     const edt =

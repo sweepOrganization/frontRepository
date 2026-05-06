@@ -12,7 +12,7 @@ export const postFcmToken = async (token: string) => {
         "Content-Type": "application/json",
         Authorization: `Bearer ${accessToken}`,
       },
-      body: JSON.stringify(token),
+      body: JSON.stringify({ token }),
     },
   );
 

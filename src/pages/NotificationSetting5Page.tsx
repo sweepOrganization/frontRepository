@@ -1,3 +1,4 @@
+import { useNavigate } from "react-router-dom";
 import useCreateAlarmMutation from "../hooks/mutations/useCreateAlarmMutation";
 import {
   useAlarmArrivalTime,
@@ -40,6 +41,7 @@ function getDiffMinutesLabel(edt: string, eta: string) {
 }
 
 export default function NotificationSetting5Page() {
+  const navigate = useNavigate();
   const title = useAlarmTitle();
   const arrivalTime = useAlarmArrivalTime();
   const edt = useAlarmEdt();
@@ -49,7 +51,11 @@ export default function NotificationSetting5Page() {
   const endPlace = useAlarmEndPlace();
   const interval = useAlarmInterval();
   const { mutate: createAlarm, isPending: isCreateAlarmPending } =
-    useCreateAlarmMutation();
+    useCreateAlarmMutation({
+      onSuccess: () => {
+        navigate("/");
+      },
+    });
 
   const isoMatch = arrivalTime.match(
     /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})/,

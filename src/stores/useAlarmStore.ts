@@ -14,6 +14,7 @@ export type Alarm = {
   prepareTime: number;
   interval: number;
   routeId: number | null;
+  routePreviewId: string | null;
   checklist: string;
   startPlace: string;
   endPlace: string;
@@ -31,6 +32,7 @@ const initialAlarm: Alarm = {
   prepareTime: 0,
   interval: 0,
   routeId: null,
+  routePreviewId: null,
   checklist: "",
   startPlace: "",
   endPlace: "",
@@ -52,6 +54,8 @@ export const useAlarmStore = create(
           setPrepareTime: (prepareTime: number) => set({ prepareTime }),
           setInterval: (interval: number) => set({ interval }),
           setRouteId: (routeId: number | null) => set({ routeId }),
+          setRoutePreviewId: (routePreviewId: string | null) =>
+            set({ routePreviewId }),
           setChecklist: (checklist: string) => set({ checklist }),
           setStartPlace: (startPlace: string) => set({ startPlace }),
           setEndPlace: (endPlace: string) => set({ endPlace }),
@@ -72,6 +76,7 @@ export const useAlarmStore = create(
           prepareTime: state.prepareTime,
           interval: state.interval,
           routeId: state.routeId,
+          routePreviewId: state.routePreviewId,
           checklist: state.checklist,
           startPlace: state.startPlace,
           endPlace: state.endPlace,
@@ -99,6 +104,8 @@ export const useAlarmPrepareTime = () =>
   useAlarmStore((state) => state.prepareTime);
 export const useAlarmInterval = () => useAlarmStore((state) => state.interval);
 export const useAlarmRouteId = () => useAlarmStore((state) => state.routeId);
+export const useAlarmRoutePreviewId = () =>
+  useAlarmStore((state) => state.routePreviewId);
 export const useAlarmChecklist = () =>
   useAlarmStore((state) => state.checklist);
 export const useAlarmStartPlace = () =>
@@ -114,14 +121,18 @@ export const useSetAlarmTitle = () =>
   useAlarmStore((state) => state.actions.setTitle);
 export const useSetAlarmArrivalTime = () =>
   useAlarmStore((state) => state.actions.setArrivalTime);
-export const useSetAlarmEdt = () => useAlarmStore((state) => state.actions.setEdt);
-export const useSetAlarmEta = () => useAlarmStore((state) => state.actions.setEta);
+export const useSetAlarmEdt = () =>
+  useAlarmStore((state) => state.actions.setEdt);
+export const useSetAlarmEta = () =>
+  useAlarmStore((state) => state.actions.setEta);
 export const useSetAlarmPrepareTime = () =>
   useAlarmStore((state) => state.actions.setPrepareTime);
 export const useSetAlarmInterval = () =>
   useAlarmStore((state) => state.actions.setInterval);
 export const useSetAlarmRouteId = () =>
   useAlarmStore((state) => state.actions.setRouteId);
+export const useSetAlarmRoutePreviewId = () =>
+  useAlarmStore((state) => state.actions.setRoutePreviewId);
 export const useSetAlarmChecklist = () =>
   useAlarmStore((state) => state.actions.setChecklist);
 export const useSetAlarmStartPlace = () =>
@@ -132,7 +143,7 @@ export const useSetAlarmStartLat = () =>
   useAlarmStore((state) => state.actions.setStartLat);
 export const useSetAlarmStartLon = () =>
   useAlarmStore((state) => state.actions.setStartLon);
-export const useSetAlarmEndX = () =>
+export const useSetAlarmEndLat = () =>
   useAlarmStore((state) => state.actions.setEndLat);
 export const useSetAlarmEndLon = () =>
   useAlarmStore((state) => state.actions.setEndLon);
