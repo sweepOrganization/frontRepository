@@ -11,6 +11,7 @@ export type Segment = {
 
 export type TrafficResponse = {
   routeId?: number | null;
+  routePreviewId?: string | null;
   totalTime?: number;
   segments?: Segment[];
 };
