@@ -18,16 +18,11 @@ type PreviewResponse = {
   segments: PreviewSegment[];
 };
 
-type NormalizedRouteData = {
-  mapObj?: string;
-  segments: unknown[];
-  [key: string]: unknown;
-};
-
 type RouteSegment = {
   trafficType?: number;
   sectionTime?: number;
   busNo?: string;
+  busType?: number;
   stationCount?: number;
   startStop?: string;
   endStop?: string;
@@ -111,31 +106,6 @@ function loadKakaoSdk(): Promise<void> {
   });
 }
 
-function normalizeRouteData(routeData?: string): NormalizedRouteData | null {
-  if (!routeData) return null;
-
-  try {
-    const parsed = JSON.parse(routeData) as {
-      mapObj?: string;
-      segments?: unknown;
-      [key: string]: unknown;
-    };
-
-    const rawSegments = parsed.segments;
-    const segments =
-      Array.isArray(rawSegments) && Array.isArray(rawSegments[1])
-        ? rawSegments[1]
-        : Array.isArray(rawSegments)
-          ? rawSegments
-          : [];
-
-    return { ...parsed, segments };
-  } catch (error) {
-    console.error("routeData parse error", error);
-    return null;
-  }
-}
-
 function toSegments(value: unknown): RouteSegment[] {
   if (!Array.isArray(value)) return [];
   return value.filter(
@@ -143,15 +113,57 @@ function toSegments(value: unknown): RouteSegment[] {
   );
 }
 
+function getBusColorClass(busType?: number) {
+  const busColorClassMap: Record<number, string> = {
+    1: "bg-(--bus-green)",
+    2: "bg-(--bus-blue)",
+    3: "bg-(--bus-green)",
+    4: "bg-(--bus-red)",
+    5: "bg-(--bus-sky)",
+    11: "bg-(--bus-blue)",
+    12: "bg-(--bus-green)",
+    14: "bg-(--bus-red)",
+  };
+
+  if (typeof busType === "number" && busColorClassMap[busType]) {
+    return busColorClassMap[busType];
+  }
+
+  return "bg-(--bus-gray)";
+}
+
+function getBusTextColorStyle(busType?: number) {
+  const busTextColorMap: Record<number, string> = {
+    1: "var(--bus-green)",
+    2: "var(--bus-blue)",
+    3: "var(--bus-green)",
+    4: "var(--bus-red)",
+    5: "var(--bus-sky)",
+    11: "var(--bus-blue)",
+    12: "var(--bus-green)",
+    14: "var(--bus-red)",
+  };
+
+  return {
+    color:
+      typeof busType === "number" && busTextColorMap[busType]
+        ? busTextColorMap[busType]
+        : "var(--bus-gray)",
+  } as const;
+}
+
 export default function RoutePage() {
   const mapRef = useRef<HTMLDivElement | null>(null);
   const routeContentRef = useRef<HTMLDivElement | null>(null);
+  const busSectionRefs = useRef<Record<number, HTMLDivElement | null>>({});
   const [routeBarHeight, setRouteBarHeight] = useState(0);
+  const [busBarSections, setBusBarSections] = useState<
+    Array<{ top: number; height: number; colorClass: string }>
+  >([]);
   const { data: detailAlarmData, isLoading } = useGetDetailAlarm({
     alarmId: 43,
   });
   const alarmDetail = detailAlarmData?.data;
-
   const requestRouteId = alarmDetail?.routeId;
   const requestType = alarmDetail?.routeType;
   const requestStartX = alarmDetail?.startX;
@@ -160,27 +172,13 @@ export default function RoutePage() {
   const requestEndY = alarmDetail?.endY;
   const requestArrivalTime = alarmDetail?.arrivalTime;
 
-  const { data: detailRouteData } = useGetDetailRoute({
-    routeId: requestRouteId,
-    type: requestType,
-    startX: requestStartX,
-    startY: requestStartY,
-    endX: requestEndX,
-    endY: requestEndY,
-    arrivalTime: requestArrivalTime,
-  });
-  void detailRouteData;
-
-  const displayArrivalTime = alarmDetail?.arrivalTime;
   const displayStartName = alarmDetail?.startName;
   const displayEndName = alarmDetail?.endName;
   const requestActualTime = alarmDetail?.actualTime;
   const requestRouteSegments = toSegments(alarmDetail?.routeSegments);
-
-  const normalizedRouteData = normalizeRouteData(alarmDetail?.routeData);
   const mapObj =
-    typeof normalizedRouteData?.mapObj === "string"
-      ? normalizedRouteData.mapObj
+    typeof alarmDetail?.routeMapObj === "string"
+      ? alarmDetail.routeMapObj
       : null;
 
   const parsedArrival = requestArrivalTime
@@ -202,6 +200,17 @@ export default function RoutePage() {
         hour12: false,
       })
     : "";
+
+  const { data: detailRouteData } = useGetDetailRoute({
+    routeId: requestRouteId,
+    type: requestType,
+    startX: requestStartX,
+    startY: requestStartY,
+    endX: requestEndX,
+    endY: requestEndY,
+    arrivalTime: requestArrivalTime,
+  });
+  void detailRouteData;
 
   useEffect(() => {
     if (!mapRef.current || !mapObj) return;
@@ -275,6 +284,27 @@ export default function RoutePage() {
 
     const measure = () => {
       setRouteBarHeight(element.offsetHeight);
+      const contentRect = element.getBoundingClientRect();
+      const sections = requestRouteSegments
+        .map((segment, index) => {
+          if (segment.trafficType !== 2) return null;
+          const sectionElement = busSectionRefs.current[index];
+          if (!sectionElement) return null;
+          const sectionRect = sectionElement.getBoundingClientRect();
+
+          return {
+            top: sectionRect.top - contentRect.top,
+            height: sectionRect.height,
+            colorClass: getBusColorClass(segment.busType),
+          };
+        })
+        .filter(
+          (
+            section,
+          ): section is { top: number; height: number; colorClass: string } =>
+            section !== null,
+        );
+      setBusBarSections(sections);
     };
 
     measure();
@@ -292,116 +322,160 @@ export default function RoutePage() {
   if (isLoading) return <div>불러오는 중...</div>;
 
   return (
-    <div className="flex h-screen flex-col">
+    <div className="flex h-screen flex-col overflow-hidden">
       <Header />
       <div ref={mapRef} className="h-[285px] w-full" />
-      <div className="mx-4 mt-5 flex flex-1 flex-col overflow-y-auto [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-        <div>
-          <div className="flex flex-col gap-[14px]">
-            <div className="rounded-[9px] border border-(--Lightgray) px-4 py-[11px]">
+      <div className="mt-5 flex min-h-0 flex-1 flex-col px-4">
+        <div className="shrink-0">
+          <div className="flex flex-col gap-[14px] text-(--Gray)">
+            <div className="h-12 rounded-[9px] border border-[#e4e4e4] px-4 py-[11px]">
               <div className="flex w-full items-center">
-                <span className="flex-1 text-center text-[17px] leading-[17px] text-(--DarkGray)">
+                <span className="flex h-[26px] flex-1 items-center justify-center text-[17px] leading-[17px] text-(--DarkGray)">
                   {formattedArrivalDate}
                 </span>
-                <span className="h-4 w-px bg-(--Lightgray)" />
-                <span className="flex-1 text-center text-[17px] leading-[17px] text-(--DarkGray)">
+                <span className="h-4 w-px bg-[#a3b7a6]" />
+                <span className="flex h-[26px] flex-1 items-center justify-center text-[17px] leading-[17px] text-(--DarkGray)">
                   {formattedArrivalTime}
                 </span>
               </div>
             </div>
 
-            <div className="mb-5 rounded-[9px] border border-(--Lightgray) px-4 py-[11px]">
+            <div className="mb-5 h-12 rounded-[9px] border border-[#e4e4e4] px-4 py-[11px]">
               <div className="flex w-full items-center">
-                <span className="flex-1 text-center text-[17px] leading-[17px] text-(--DarkGray)">
+                <span className="flex h-[26px] flex-1 items-center justify-center text-[17px] leading-[17px] text-(--DarkGray)">
                   {displayStartName ? displayStartName : "출발지"}
                 </span>
                 <img
                   src="/bidirectionalarrow.svg"
                   alt="출발지 도착지 방향"
-                  className="mx-2 h-4 w-4 shrink-0"
+                  className="mx-2 h-[7px] w-[23.65px] shrink-0"
                 />
-                <span className="flex-1 text-center text-[17px] leading-[17px] text-(--DarkGray)">
+                <span className="flex h-[26px] flex-1 items-center justify-center text-[17px] leading-[17px] text-(--DarkGray)">
                   {displayEndName ? displayEndName : "도착지"}
                 </span>
               </div>
             </div>
           </div>
 
-          <div className="my-[32px] flex h-[80px] w-full flex-col rounded-[10px] border border-(--GreenNormal) px-5 py-[10px]">
-            <span>선택 경로 안내</span>
-            <div>
-              <span>{requestActualTime}</span>
-              <span>분 도착 예상</span>
-            </div>
-          </div>
+          <div className="-mx-4 mb-4 h-px w-screen bg-[#e4e4e4]" />
+        </div>
 
-          <div className="flex gap-[18px]">
-            <div
-              className="w-[16px] rounded-full bg-[#E5E7EB]"
-              style={{ height: `${routeBarHeight}px` }}
-            />
-            <div ref={routeContentRef} className="w-full">
-              <div className="flex items-center gap-2">
-                <span className="text-[17px] leading-[17px] font-semibold text-[#323232]">
-                  {displayStartName}
+        <div className="min-h-0 flex-1 overflow-y-auto [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          <div>
+            <div className="my-[32px] flex h-[80px] w-full flex-col rounded-[10px] border border-(--GreenNormal) px-5 py-[10px]">
+              <div className="flex h-[26px] items-center text-[17px] leading-[17px] font-semibold text-[#323232]">
+                선택 경로 안내
+              </div>
+              <div className="flex h-[34px] items-end gap-1">
+                <span className="text-[21px] leading-[21px] font-semibold text-(--Green)">
+                  {requestActualTime}분
                 </span>
-                <span className="text-[17px] leading-[17px] text-(--GreenNormal)">
-                  출발
+                <span className="self-end text-[15px] leading-[15px] font-semibold text-(--Lightgray)">
+                  후 도착 예상
                 </span>
               </div>
+            </div>
 
-              {requestRouteSegments.map((segment, index) => {
-                if (segment.trafficType === 3) {
-                  return (
-                    <div key={`walk-${index}`}>
-                      <div className="mt-2 text-[15px]">
-                        도보{" "}
-                        <span className="text-[19px] leading-[19px] font-semibold text-[#323232]">
-                          {segment.sectionTime ?? 0}
-                        </span>
-                        분
-                      </div>
-                      <div className="my-[18px] h-px w-full bg-[#E5E7EB]" />
+            <div className="flex gap-[18px]">
+              <div
+                className="relative w-5"
+                style={{ height: `${routeBarHeight}px` }}
+              >
+                <div className="absolute inset-y-0 left-1/2 w-[16px] -translate-x-1/2 rounded-[4px] bg-[#E5E7EB]" />
+                {busBarSections.map((section, index) => (
+                  <div key={`bus-bar-${index}`}>
+                    <div
+                      className={`absolute left-1/2 w-[16px] -translate-x-1/2 rounded-[4px] ${section.colorClass}`}
+                      style={{
+                        top: `${section.top}px`,
+                        height: `${section.height}px`,
+                      }}
+                    />
+                    <div
+                      className={`absolute left-1/2 flex h-5 w-5 -translate-x-1/2 items-center justify-center rounded-[6px] ${section.colorClass}`}
+                      style={{ top: `${section.top - 12}px` }}
+                    >
+                      <img
+                        src="/BusIcon.svg"
+                        alt="bus"
+                        className="h-4 w-4 shrink-0"
+                      />
                     </div>
-                  );
-                }
+                  </div>
+                ))}
+              </div>
+              <div ref={routeContentRef} className="mb-18 w-full">
+                <div className="flex h-[26px] items-center gap-2">
+                  <span className="text-[17px] leading-[17px] font-semibold text-[#323232]">
+                    {displayStartName}
+                  </span>
+                  <span className="text-[17px] leading-[17px] font-semibold text-[#009362]">
+                    출발
+                  </span>
+                </div>
 
-                if (segment.trafficType === 2) {
-                  return (
-                    <div key={`bus-${index}`}>
-                      <div className="mb-1 text-[15px] leading-[15px] font-semibold">
-                        <span className="text-[19px] leading-[19px] font-semibold text-[#323232]">
-                          {segment.sectionTime ?? 0}
-                        </span>
-                        분
+                {requestRouteSegments.map((segment, index) => {
+                  if (segment.trafficType === 3) {
+                    return (
+                      <div key={`walk-${index}`}>
+                        <div className="mt-2 h-[30px] text-[15px] leading-[15px] font-semibold">
+                          도보{" "}
+                          <span className="text-[19px] leading-[19px] font-semibold text-[#323232]">
+                            {segment.sectionTime ?? 0}
+                          </span>
+                          분
+                        </div>
+                        <div className="my-[10px] h-px w-full bg-[#E5E7EB]" />
                       </div>
-                      <div className="flex items-center gap-2">
-                        <span>{segment.startStop}</span>
-                        <span>승차</span>
-                      </div>
-                      <div className="my-2 w-full rounded-[10px] border border-[#e4e4e4] px-4 py-[10px]">
-                        <span className="rounded-[6px] bg-(--GreenNormal) px-2 py-1 text-white">
-                          {segment.busNo}
-                        </span>
-                      </div>
-                      <div className="text-[12px] leading-[12px] text-(--Lightgray)">
-                        {segment.stationCount ?? 0}개 정류장 이동
-                      </div>
-                      <div className="my-[18px] h-px w-full bg-[#E5E7EB]" />
-                      <div className="text-[17px] leading-[17px] font-semibold">
-                        {segment.endStop} 하차
-                      </div>
-                      <div className="my-[18px] h-px w-full bg-[#E5E7EB]" />
-                    </div>
-                  );
-                }
+                    );
+                  }
 
-                return null;
-              })}
+                  if (segment.trafficType === 2) {
+                    return (
+                      <div
+                        key={`bus-${index}`}
+                        ref={(element) => {
+                          busSectionRefs.current[index] = element;
+                        }}
+                      >
+                        <div className="mb-1 flex h-[30px] items-center text-[15px] leading-[15px] font-semibold">
+                          <span className="text-[19px] leading-[19px] text-[#323232]">
+                            {segment.sectionTime ?? 0}
+                          </span>
+                          분
+                        </div>
+                        <div className="flex h-[26px] items-center gap-2 text-[17px] leading-[17px] font-semibold">
+                          <span style={getBusTextColorStyle(segment.busType)}>
+                            {segment.startStop}
+                          </span>
+                          <span>승차</span>
+                        </div>
+                        <div className="my-2 flex w-full flex-col rounded-[10px] border border-[#e4e4e4] px-4 py-[10px]">
+                          <span
+                            className={`h-[22px] w-[41px] rounded-[5px] px-1 py-[3px] text-center text-[13px] leading-[13px] font-semibold text-white ${getBusColorClass(segment.busType)}`}
+                          >
+                            {segment.busNo}
+                          </span>
+                        </div>
+                        <div className="text-[12px] leading-[12px] text-(--Lightgray)">
+                          {segment.stationCount ?? 0}개 정류장 이동
+                        </div>
+                        <div className="my-[18px] h-px w-full bg-[#E5E7EB]" />
+                        <div className="text-[17px] leading-[17px] font-semibold">
+                          {segment.endStop} 하차
+                        </div>
+                        <div className="my-[18px] h-px w-full bg-[#E5E7EB]" />
+                      </div>
+                    );
+                  }
 
-              <div className="flex items-center gap-2">
-                <span>{displayEndName}</span>
-                <span className="text-(--GreenNormal)">도착</span>
+                  return null;
+                })}
+
+                <div className="flex items-center gap-2 text-[17px] leading-[17px] font-semibold">
+                  <span>{displayEndName}</span>
+                  <span className="text-[#009362]">도착</span>
+                </div>
               </div>
             </div>
           </div>

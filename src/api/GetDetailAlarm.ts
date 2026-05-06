@@ -16,8 +16,11 @@ export async function getDetailAlarm({ alarmId }: { alarmId: number }) {
   if (typeof routeDataRaw === "string") {
     try {
       const parsedRouteData = JSON.parse(routeDataRaw) as {
+        mapObj?: unknown;
         segments?: unknown;
       };
+      data.data.routeMapObj =
+        typeof parsedRouteData.mapObj === "string" ? parsedRouteData.mapObj : null;
       const rawSegments = parsedRouteData.segments;
       const segments =
         Array.isArray(rawSegments) && Array.isArray(rawSegments[1])
@@ -28,9 +31,11 @@ export async function getDetailAlarm({ alarmId }: { alarmId: number }) {
 
       data.data.routeSegments = segments;
     } catch {
+      data.data.routeMapObj = null;
       data.data.routeSegments = [];
     }
   } else {
+    data.data.routeMapObj = null;
     data.data.routeSegments = [];
   }
 
