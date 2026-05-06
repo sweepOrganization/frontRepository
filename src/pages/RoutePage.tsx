@@ -1,4 +1,5 @@
 ﻿import { useEffect, useMemo, useRef, useState } from "react";
+import { useParams } from "react-router-dom";
 import Header from "../components/Header";
 import useGetDetailAlarm from "../hooks/queries/useGetDetailAlarm";
 import useGetDetailRoute from "../hooks/queries/useGetDetailRoute";
@@ -347,6 +348,7 @@ function splitArrivalMessage(message: string) {
 }
 
 export default function RoutePage() {
+  const { alarmId } = useParams();
   const mapRef = useRef<HTMLDivElement | null>(null);
   const routeContentRef = useRef<HTMLDivElement | null>(null);
   const transitSectionRefs = useRef<Record<number, HTMLDivElement | null>>({});
@@ -356,7 +358,7 @@ export default function RoutePage() {
     TransitBarSection[]
   >([]);
   const { data: detailAlarmData, isLoading } = useGetDetailAlarm({
-    alarmId: 49,
+    alarmId: Number(alarmId),
   });
   const alarmDetail = detailAlarmData?.data;
   const requestRouteId = alarmDetail?.routeId;
