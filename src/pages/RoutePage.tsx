@@ -17,11 +17,6 @@ type PreviewResponse = {
   segments: PreviewSegment[];
 };
 
-type RoutePagePoint = {
-  x: number;
-  y: number;
-};
-
 type RoutePageProps = {
   arrivalTime?: string;
   routePreviewId?: string;
@@ -31,9 +26,9 @@ type RoutePageProps = {
   startY?: number;
   endX?: number;
   endY?: number;
-  totalTime?: number;
-  startPlace?: string | RoutePagePoint;
-  endPlace?: string | RoutePagePoint;
+  actualTime?: number;
+  startName?: string;
+  endName?: string;
 };
 
 type KakaoLatLng = { __brand: "KakaoLatLng" };
@@ -125,11 +120,28 @@ export default function RoutePage({
   startY,
   endX,
   endY,
-  totalTime,
-  startPlace,
-  endPlace,
+  actualTime,
+  startName,
+  endName,
 }: RoutePageProps) {
   const mapRef = useRef<HTMLDivElement | null>(null);
+  const parsedArrival = arrivalTime ? new Date(arrivalTime) : null;
+  const hasValidArrival =
+    parsedArrival instanceof Date && !Number.isNaN(parsedArrival.getTime());
+  const formattedArrivalDate = hasValidArrival
+    ? parsedArrival.toLocaleDateString("ko-KR", {
+        month: "long",
+        day: "numeric",
+        weekday: "short",
+      })
+    : "";
+  const formattedArrivalTime = hasValidArrival
+    ? parsedArrival.toLocaleTimeString("ko-KR", {
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: false,
+      })
+    : "";
 
   useEffect(() => {
     if (!mapRef.current) return;
@@ -203,9 +215,9 @@ export default function RoutePage({
     void startY;
     void endX;
     void endY;
-    void totalTime;
-    void startPlace;
-    void endPlace;
+    void actualTime;
+    void startName;
+    void endName;
   }, [
     routePreviewId,
     routeId,
@@ -215,44 +227,48 @@ export default function RoutePage({
     startY,
     endX,
     endY,
-    totalTime,
-    startPlace,
-    endPlace,
+    actualTime,
+    startName,
+    endName,
   ]);
 
   return (
     <div className="flex h-screen flex-col">
       <Header />
       <div ref={mapRef} className="h-[285px] w-full" />
-      <div className="mx-4 mt-[14px] flex flex-1 flex-col overflow-y-auto">
-        <div className="flex flex-col gap-[14px]">
-          <div className="rounded-[9px] border border-(--Lightgray) px-4 py-[11px]">
-            <div className="flex w-full items-center">
-              <span className="flex-1 text-center text-[17px] leading-[17px] text-(--DarkGray)">
-                {arrivalTime}
-              </span>
-              <span className="h-4 w-px bg-(--Lightgray)" />
-              <span className="flex-1 text-center text-[17px] leading-[17px] text-(--DarkGray)">
-                {totalTime}
-              </span>
+      <div className="mx-4 mt-5 flex flex-1 flex-col overflow-y-auto">
+        <div>
+          <div className="flex flex-col gap-[14px]">
+            <div className="rounded-[9px] border border-(--Lightgray) px-4 py-[11px]">
+              <div className="flex w-full items-center">
+                <span className="flex-1 text-center text-[17px] leading-[17px] text-(--DarkGray)">
+                  {formattedArrivalDate}
+                </span>
+                <span className="h-4 w-px bg-(--Lightgray)" />
+                <span className="flex-1 text-center text-[17px] leading-[17px] text-(--DarkGray)">
+                  {formattedArrivalTime}
+                </span>
+              </div>
             </div>
-          </div>
 
-          <div className="rounded-[9px] border border-(--Lightgray) px-4 py-[11px]">
-            <div className="flex w-full items-center">
-              <span className="flex-1 text-center text-[17px] leading-[17px] text-(--DarkGray)">
-                {startPlace ? startPlace.toString() : "출발지"}
-              </span>
-              <img
-                src="/bidirectionalarrow.svg"
-                alt="출발지 도착지 방향"
-                className="mx-2 h-4 w-4 shrink-0"
-              />
-              <span className="flex-1 text-center text-[17px] leading-[17px] text-(--DarkGray)">
-                {endPlace ? endPlace.toString() : "도착지"}
-              </span>
+            <div className="mb-5 rounded-[9px] border border-(--Lightgray) px-4 py-[11px]">
+              <div className="flex w-full items-center">
+                <span className="flex-1 text-center text-[17px] leading-[17px] text-(--DarkGray)">
+                  {startName ? startName : "출발지"}
+                </span>
+                <img
+                  src="/bidirectionalarrow.svg"
+                  alt="출발지 도착지 방향"
+                  className="mx-2 h-4 w-4 shrink-0"
+                />
+                <span className="flex-1 text-center text-[17px] leading-[17px] text-(--DarkGray)">
+                  {endName ? endName : "도착지"}
+                </span>
+              </div>
             </div>
           </div>
+          <div className="my-[32px] h-[103px] w-full rounded-[10px] border border-(--GreenNormal)"></div>
+          <div></div>
         </div>
       </div>
     </div>
