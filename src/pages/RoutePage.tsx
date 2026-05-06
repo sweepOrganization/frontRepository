@@ -32,13 +32,21 @@ type RouteSegment = {
   startStation?: string;
   endStation?: string;
 };
+type DisplayRouteSegment = RouteSegment & {
+  sourceIndices: number[];
+};
 type AvailableTrain = {
   wayName?: string;
   departureTime?: string;
 };
+type ArrivingBus = {
+  arrivalMessage?: string;
+};
 type SegmentBoardingInfo = {
   trafficType?: number;
+  transportId?: string;
   availableTrains?: AvailableTrain[];
+  arrivingBuses?: ArrivingBus[];
 };
 type DetailRoutePayload = {
   segmentBoardingInfos?: SegmentBoardingInfo[];
@@ -141,6 +149,49 @@ function toSegments(value: unknown): RouteSegment[] {
   return value.filter(
     (v): v is RouteSegment => typeof v === "object" && v !== null,
   );
+}
+
+function toDisplayRouteSegments(
+  segments: RouteSegment[],
+): DisplayRouteSegment[] {
+  const result: DisplayRouteSegment[] = [];
+
+  segments.forEach((segment, index) => {
+    const last = result[result.length - 1];
+    const canMergeBus =
+      segment.trafficType === 2 &&
+      last?.trafficType === 2 &&
+      segment.startStop &&
+      segment.endStop &&
+      last.startStop === segment.startStop &&
+      last.endStop === segment.endStop;
+
+    if (!canMergeBus) {
+      result.push({ ...segment, sourceIndices: [index] });
+      return;
+    }
+
+    const mergedBusNos = [last.busNo, segment.busNo]
+      .filter((value): value is string => Boolean(value))
+      .flatMap((value) => value.split("/").map((part) => part.trim()))
+      .filter((value, i, arr) => value.length > 0 && arr.indexOf(value) === i)
+      .join(" / ");
+
+    last.busNo = mergedBusNos || last.busNo;
+    last.sourceIndices.push(index);
+  });
+
+  return result;
+}
+
+function splitBusNos(busNo?: string) {
+  if (!busNo) return [];
+  return busNo
+    .split("/")
+    .map((value) => value.trim())
+    .filter(
+      (value, index, arr) => value.length > 0 && arr.indexOf(value) === index,
+    );
 }
 
 function getBusColorClass(busType?: number) {
@@ -283,6 +334,18 @@ function formatActualTime(actualTime?: number) {
   return `${hours}시간 ${minutes}분`;
 }
 
+function splitArrivalMessage(message: string) {
+  const marker = "후";
+  const markerIndex = message.indexOf(marker);
+  if (markerIndex < 0) {
+    return { firstLine: message, secondLine: "" };
+  }
+
+  const firstLine = message.slice(0, markerIndex + marker.length).trim();
+  const secondLine = message.slice(markerIndex + marker.length).trim();
+  return { firstLine, secondLine };
+}
+
 export default function RoutePage() {
   const mapRef = useRef<HTMLDivElement | null>(null);
   const routeContentRef = useRef<HTMLDivElement | null>(null);
@@ -308,6 +371,10 @@ export default function RoutePage() {
   const displayEndName = alarmDetail?.endName;
   const requestActualTime = alarmDetail?.actualTime;
   const requestRouteSegments = toSegments(alarmDetail?.routeSegments);
+  const displayRouteSegments = useMemo(
+    () => toDisplayRouteSegments(requestRouteSegments),
+    [requestRouteSegments],
+  );
   const mapObj =
     typeof alarmDetail?.routeMapObj === "string"
       ? alarmDetail.routeMapObj
@@ -370,6 +437,24 @@ export default function RoutePage() {
 
     return mapped;
   }, [detailRouteData, requestRouteSegments]);
+  const busArrivalMessagesByBusNo = useMemo(() => {
+    const infos = toSegmentBoardingInfos(detailRouteData);
+    const mapped: Record<string, string[]> = {};
+
+    infos.forEach((info) => {
+      if (info.trafficType !== 2) return;
+      const busNo = info.transportId?.trim();
+      if (!busNo) return;
+      const messages =
+        info.arrivingBuses
+          ?.map((bus) => bus.arrivalMessage?.trim() ?? "")
+          .filter((message) => message.length > 0) ?? [];
+      if (messages.length === 0) return;
+      mapped[busNo] = messages;
+    });
+
+    return mapped;
+  }, [detailRouteData]);
   const segmentDepartureTimeByIndex = useMemo(() => {
     const infos = toSegmentBoardingInfos(detailRouteData);
     const mapped: Record<number, string> = {};
@@ -398,6 +483,16 @@ export default function RoutePage() {
 
     return mapped;
   }, [detailRouteData, requestRouteSegments]);
+  const getMappedValueFromSources = (
+    sourceIndices: number[],
+    map: Record<number, string>,
+  ) => {
+    for (const sourceIndex of sourceIndices) {
+      const value = map[sourceIndex];
+      if (value) return value;
+    }
+    return "";
+  };
 
   useEffect(() => {
     const timerId = window.setInterval(() => {
@@ -506,7 +601,7 @@ export default function RoutePage() {
     const measure = () => {
       setRouteBarHeight(element.offsetHeight);
       const contentRect = element.getBoundingClientRect();
-      const sections = requestRouteSegments
+      const sections = displayRouteSegments
         .map((segment, index): TransitBarSection | null => {
           if (segment.trafficType !== 1 && segment.trafficType !== 2)
             return null;
@@ -545,7 +640,7 @@ export default function RoutePage() {
     return () => {
       observer.disconnect();
     };
-  }, [requestRouteSegments, displayStartName, displayEndName]);
+  }, [displayRouteSegments, displayStartName, displayEndName]);
 
   if (isLoading) return <div>불러오는 중...</div>;
 
@@ -654,7 +749,7 @@ export default function RoutePage() {
                   </span>
                 </div>
 
-                {requestRouteSegments.map((segment, index) => {
+                {displayRouteSegments.map((segment, index) => {
                   // 도보
                   if (segment.trafficType === 3) {
                     if ((segment.sectionTime ?? 0) <= 0) {
@@ -695,17 +790,56 @@ export default function RoutePage() {
                           </span>
                           <span>승차</span>
                         </div>
-                        {segmentWayNameByIndex[index] ? (
+                        {getMappedValueFromSources(
+                          segment.sourceIndices,
+                          segmentWayNameByIndex,
+                        ) ? (
                           <div className="mt-1 text-[12px] leading-[12px] font-medium text-[#6B7280]">
-                            {segmentWayNameByIndex[index]}
+                            {getMappedValueFromSources(
+                              segment.sourceIndices,
+                              segmentWayNameByIndex,
+                            )}
                           </div>
                         ) : null}
                         <div className="my-2 flex w-full flex-col rounded-[10px] border border-[#e4e4e4] px-4 py-[10px]">
-                          <span
-                            className={`h-[22px] w-[41px] rounded-[5px] px-1 py-[3px] text-center text-[13px] leading-[13px] font-semibold text-white ${getBusColorClass(segment.busType)}`}
-                          >
-                            {segment.busNo}
-                          </span>
+                          <div className="flex flex-col gap-2">
+                            {splitBusNos(segment.busNo).map((busNo) => (
+                              <div
+                                key={`${index}-${busNo}`}
+                                className="grid grid-cols-[41px_1fr] items-center gap-2"
+                              >
+                                <span
+                                  className={`inline-flex h-[22px] w-[41px] items-center justify-center rounded-[5px] px-2 py-[3px] text-center text-[13px] leading-[13px] font-semibold text-white ${getBusColorClass(segment.busType)}`}
+                                >
+                                  {busNo}
+                                </span>
+                                <div className="flex w-full flex-row items-center justify-between px-5">
+                                  {(busArrivalMessagesByBusNo[busNo] ?? []).map(
+                                    (message, messageIndex) => {
+                                      const { firstLine, secondLine } =
+                                        splitArrivalMessage(message);
+
+                                      return (
+                                        <span
+                                          key={`${busNo}-arrive-${messageIndex}`}
+                                          className="min-w-[88px] text-[15px] leading-[15px] text-[#EF4444]"
+                                        >
+                                          <span className="block">
+                                            {firstLine}
+                                          </span>
+                                          {secondLine ? (
+                                            <span className="mt-1 block text-[12px] leading-[12px]">
+                                              {secondLine}
+                                            </span>
+                                          ) : null}
+                                        </span>
+                                      );
+                                    },
+                                  )}
+                                </div>
+                              </div>
+                            ))}
+                          </div>
                         </div>
                         <div className="text-[12px] leading-[12px] text-(--Lightgray)">
                           {segment.stationCount ?? 0}개 정류장 이동
@@ -752,20 +886,35 @@ export default function RoutePage() {
                           </span>
                           <span>승차</span>
                         </div>
-                        {segmentWayNameByIndex[index] ? (
+                        {getMappedValueFromSources(
+                          segment.sourceIndices,
+                          segmentWayNameByIndex,
+                        ) ? (
                           <div className="mt-1 text-[12px] leading-[12px] font-medium text-[#6B7280]">
-                            {segmentWayNameByIndex[index]}
+                            {getMappedValueFromSources(
+                              segment.sourceIndices,
+                              segmentWayNameByIndex,
+                            )}
                           </div>
                         ) : null}
                         <div className="my-2 flex w-full flex-col rounded-[10px] border border-[#e4e4e4] px-4 py-[10px]">
-                          {segmentDepartureTimeByIndex[index] ? (
+                          {getMappedValueFromSources(
+                            segment.sourceIndices,
+                            segmentDepartureTimeByIndex,
+                          ) ? (
                             <span className="text-[15px] leading-[15px] font-bold text-[#323232]">
                               {formatDepartureHourMinute(
-                                segmentDepartureTimeByIndex[index],
+                                getMappedValueFromSources(
+                                  segment.sourceIndices,
+                                  segmentDepartureTimeByIndex,
+                                ),
                               )}{" "}
                               <span className="text-[#EF4444]">
                                 {getRemainingCountdownText(
-                                  segmentDepartureTimeByIndex[index],
+                                  getMappedValueFromSources(
+                                    segment.sourceIndices,
+                                    segmentDepartureTimeByIndex,
+                                  ),
                                   now,
                                 )}
                               </span>

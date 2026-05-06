@@ -24,6 +24,10 @@ export default function useGetDetailRoute({
   const startLon = startX;
   const endLat = endY;
   const endLon = endX;
+  const normalizedType = String(type ?? "")
+    .trim()
+    .toLowerCase();
+  const isPathTypeBus = normalizedType === "path_type_bus";
 
   return useQuery({
     queryKey: [
@@ -46,5 +50,14 @@ export default function useGetDetailRoute({
         endLon,
         arrivalTime,
       }),
+    enabled:
+      routeId !== undefined &&
+      !!type &&
+      startLat !== undefined &&
+      startLon !== undefined &&
+      endLat !== undefined &&
+      endLon !== undefined &&
+      !!arrivalTime,
+    refetchInterval: isPathTypeBus ? 60_000 : false,
   });
 }
