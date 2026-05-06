@@ -60,7 +60,7 @@ export default function NotificationSetting4Page() {
 
   return (
     <div className="flex h-screen flex-col">
-      <div className="mx-4 mt-[14px] flex flex-1 flex-col overflow-y-auto pb-6">
+      <div className="mx-4 mt-[14px] flex flex-1 flex-col overflow-y-auto pb-6 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
         <div className="mb-[45px] flex h-16 flex-col gap-[4px]">
           <span className="text-[23px] leading-[34px] font-bold">
             준비는 얼마나 걸리나요?

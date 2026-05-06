@@ -9,6 +9,7 @@ import {
   useAlarmPrepareTime,
   useAlarmStartPlace,
   useAlarmTitle,
+  useResetAlarm,
 } from "../stores/useAlarmStore";
 
 function subtractMinutesFromTime(time: string, minutesToSubtract: number) {
@@ -50,10 +51,12 @@ export default function NotificationSetting5Page() {
   const startPlace = useAlarmStartPlace();
   const endPlace = useAlarmEndPlace();
   const interval = useAlarmInterval();
+  const resetAlarm = useResetAlarm();
   const { mutate: createAlarm, isPending: isCreateAlarmPending } =
     useCreateAlarmMutation({
       onSuccess: () => {
-        navigate("/");
+        resetAlarm();
+        navigate("/", { replace: true });
       },
     });
 
@@ -83,29 +86,29 @@ export default function NotificationSetting5Page() {
           </div>
 
           <div className="flex flex-col gap-[14px]">
-            <div className="rounded-[9px] border border-(--Lightgray) px-4 py-[11px]">
-              <div className="flex w-full items-center">
-                <span className="flex-1 text-center text-[17px] leading-[17px] text-(--DarkGray)">
+            <div className="flex h-12 items-center rounded-[9px] border border-(--Lightgray) px-4">
+              <div className="flex w-full items-center text-(--Gray)">
+                <span className="min-w-0 flex-1 overflow-hidden text-center text-[17px] leading-[17px] text-ellipsis whitespace-nowrap text-(--DarkGray)">
                   {formattedDate}
                 </span>
-                <span className="h-4 w-px bg-(--Lightgray)" />
-                <span className="flex-1 text-center text-[17px] leading-[17px] text-(--DarkGray)">
+                <span className="h-4 w-px bg-[#a3b7a6]" />
+                <span className="min-w-0 flex-1 overflow-hidden text-center text-[17px] leading-[17px] text-ellipsis whitespace-nowrap text-(--DarkGray)">
                   {formattedTime}
                 </span>
               </div>
             </div>
 
-            <div className="rounded-[9px] border border-(--Lightgray) px-4 py-[11px]">
-              <div className="flex w-full items-center">
-                <span className="flex-1 text-center text-[17px] leading-[17px] text-(--DarkGray)">
+            <div className="flex h-12 items-center rounded-[9px] border border-(--Lightgray) px-4">
+              <div className="flex w-full items-center text-(--Gray)">
+                <span className="min-w-0 flex-1 overflow-hidden text-center text-[17px] leading-[17px] text-ellipsis whitespace-nowrap text-(--DarkGray)">
                   {startPlace.trim() ? startPlace : "출발지"}
                 </span>
                 <img
                   src="/bidirectionalarrow.svg"
                   alt="출발지 도착지 방향"
-                  className="mx-2 h-4 w-4 shrink-0"
+                  className="mx-2 h-7 w-[23.65px] shrink-0 text-[#a3b7a6]"
                 />
-                <span className="flex-1 text-center text-[17px] leading-[17px] text-(--DarkGray)">
+                <span className="min-w-0 flex-1 overflow-hidden text-center text-[17px] leading-[17px] text-ellipsis whitespace-nowrap text-(--DarkGray)">
                   {endPlace.trim() ? endPlace : "도착지"}
                 </span>
               </div>
