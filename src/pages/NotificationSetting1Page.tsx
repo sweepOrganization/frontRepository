@@ -55,18 +55,17 @@ export default function NotificationSettingPage() {
 
   return (
     <div className="box-border min-h-screen w-full px-5 pt-[52px] pb-[143px]">
-      <h1 className="text-[26px] leading-[150%] font-semibold text-[var(--Normal)]">
+      <h1 className="text-[26px] leading-[150%] font-semibold text-(--Normal)">
         일정을 언제로 할까요?
       </h1>
 
-      <p className="mt-[4px] text-[17px] font-normal text-[var(--Darkgray)]">
+      <p className="mt-[4px] text-[17px] font-normal text-(--Darkgray)">
         날짜와 도착 시간을 알려주세요
       </p>
 
       <div className="mt-[40px]">
-        <label className="mb-[10px] block text-[17px] font-semibold text-[var(--Normal)]">
-          주제{" "}
-          <span className="font-normal text-[var(--Lightgray)]">(선택)</span>
+        <label className="mb-[10px] block text-[17px] font-semibold text-(--Normal)">
+          주제 <span className="font-normal text-(--Lightgray)">(선택)</span>
         </label>
 
         <input
@@ -77,12 +76,12 @@ export default function NotificationSettingPage() {
             setAlarmTitle(e.target.value);
           }}
           placeholder="예: 점심 약속, 병원 가기"
-          className={`h-[48px] w-full rounded-[9px] border px-4 text-[16px] outline-none ${title ? "border-[var(--GreenNormal)]" : "border-[#e4e4e4]"} focus:border-[var(--GreenNormal)]`}
+          className={`h-[48px] w-full rounded-[9px] border px-4 text-[16px] outline-none ${title ? "border-(--GreenNormal)" : "border-[#e4e4e4]"} focus:border-(--GreenNormal)`}
         />
       </div>
 
       <div className="mt-[24px]">
-        <label className="mb-[10px] block text-[17px] font-semibold text-[var(--Normal)]">
+        <label className="mb-[10px] block text-[17px] font-semibold text-(--Normal)">
           날짜
         </label>
 
@@ -94,13 +93,13 @@ export default function NotificationSettingPage() {
           className={`mb-[16px] h-[48px] w-full rounded-[9px] border px-4 text-[16px] outline-none ${
             date
               ? "border-[#e4e4e4] bg-[#f9f9f9] font-medium text-[#6d6d6d]"
-              : "border-[#e4e4e4] bg-white text-[var(--Lightgray)]"
+              : "border-[#e4e4e4] bg-white text-(--Lightgray)"
           } `}
         />
 
         <div
           className={`rounded-[9px] border p-[20px] ${
-            date ? "border-[var(--GreenNormal)]" : "border-[#e4e4e4]"
+            date ? "border-(--GreenNormal)" : "border-[#e4e4e4]"
           }`}
         >
           <DatePicker
@@ -116,11 +115,11 @@ export default function NotificationSettingPage() {
 
                 <div className="flex gap-[12px]">
                   <button onClick={decreaseMonth} className="p-2" type="button">
-                    <div className="h-[10px] w-[10px] rotate-45 border-b-2 border-l-2 border-[var(--GreenNormal)]" />
+                    <div className="h-[10px] w-[10px] rotate-45 border-b-2 border-l-2 border-(--GreenNormal)" />
                   </button>
 
                   <button onClick={increaseMonth} className="p-2" type="button">
-                    <div className="h-[10px] w-[10px] -rotate-45 border-r-2 border-b-2 border-[var(--GreenNormal)]" />
+                    <div className="h-[10px] w-[10px] -rotate-45 border-r-2 border-b-2 border-(--GreenNormal)" />
                   </button>
                 </div>
               </div>
@@ -130,7 +129,7 @@ export default function NotificationSettingPage() {
       </div>
 
       <div className="mt-[32px]">
-        <label className="mb-[10px] block text-[17px] font-semibold text-[var(--Normal)]">
+        <label className="mb-[10px] block text-[17px] font-semibold text-(--Normal)">
           도착 시간
         </label>
 
@@ -145,12 +144,12 @@ export default function NotificationSettingPage() {
           placeholder="도착 시간을 선택해 주세요"
           className={`mb-[12px] h-[48px] w-full rounded-[9px] border border-[#e4e4e4] px-4 text-[16px] outline-none ${
             time.hour && time.minute
-              ? "bg-[#F9F9F9] text-[var(--Darkgray)]"
+              ? "bg-[#F9F9F9] text-(--Darkgray)"
               : "font-normal"
           }`}
         />
 
-        <div className="relative overflow-hidden rounded-[12px] border border-[#e4e4e4] bg-white touch-pan-y [&_*]:!border-t-0 [&_*]:!border-b-0 [&_*]:!shadow-none">
+        <div className="relative touch-pan-y overflow-hidden rounded-[12px] border border-[#e4e4e4] bg-white **:border-t-0! **:border-b-0! **:shadow-none!">
           <div className="absolute top-1/2 right-[24px] left-[24px] h-[44px] -translate-y-1/2 rounded-full bg-[#eff9f1]" />
 
           <Picker
@@ -176,7 +175,7 @@ export default function NotificationSettingPage() {
                     <span
                       className={
                         selected
-                          ? "text-[20px] font-semibold text-[var(--GreenNormal)]"
+                          ? "text-[20px] font-semibold text-(--GreenNormal)"
                           : "text-[20px] text-[#d6d6d6]"
                       }
                     >
@@ -195,7 +194,7 @@ export default function NotificationSettingPage() {
                       <span
                         className={
                           selected
-                            ? "text-[20px] font-normal text-[var(--GreenNormal)]"
+                            ? "text-[20px] font-normal text-(--GreenNormal)"
                             : "text-[20px] text-[#d6d6d6]"
                         }
                       >
@@ -216,7 +215,7 @@ export default function NotificationSettingPage() {
                     <span
                       className={
                         selected
-                          ? "text-[20px] font-normal text-[var(--GreenNormal)]"
+                          ? "text-[20px] font-normal text-(--GreenNormal)"
                           : "text-[20px] text-[#d6d6d6]"
                       }
                     >
@@ -228,14 +227,14 @@ export default function NotificationSettingPage() {
             </Picker.Column>
           </Picker>
 
-          <div className="pointer-events-none absolute inset-x-0 top-0 h-[16px] bg-gradient-to-b from-white to-transparent" />
-          <div className="pointer-events-none absolute inset-x-0 bottom-0 h-[16px] bg-gradient-to-t from-white to-transparent" />
+          <div className="pointer-events-none absolute inset-x-0 top-0 h-[16px] bg-linear-to-b from-white to-transparent" />
+          <div className="pointer-events-none absolute inset-x-0 bottom-0 h-[16px] bg-linear-to-t from-white to-transparent" />
         </div>
       </div>
 
       <div className="fixed right-0 bottom-0 left-0 bg-white">
         <div className="h-1.5 w-full rounded-none bg-[#e4e4e4]">
-          <div className="h-full w-1/4 rounded-l-none rounded-r-[300px] bg-[var(--GreenNormal)]" />
+          <div className="h-full w-1/4 rounded-l-none rounded-r-[300px] bg-(--GreenNormal)" />
         </div>
 
         <button
@@ -246,8 +245,8 @@ export default function NotificationSettingPage() {
           }}
           className={`h-[67px] w-full text-[21px] font-normal ${
             !date || !isTimeSelected
-              ? "bg-[var(--GreenLight)] text-[#b1d8b6]"
-              : "bg-[var(--GreenNormal)] text-white"
+              ? "bg-(--GreenLight) text-[#b1d8b6]"
+              : "bg-(--GreenNormal) text-white"
           }`}
         >
           출발지 설정하기
