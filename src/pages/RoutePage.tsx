@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import Header from "../components/Header";
 import useGetDetailAlarm from "../hooks/queries/useGetDetailAlarm";
 import useGetDetailRoute from "../hooks/queries/useGetDetailRoute";
@@ -19,14 +19,18 @@ type PreviewResponse = {
 };
 
 type NormalizedRouteData = {
+  mapObj?: string;
   segments: unknown[];
   [key: string]: unknown;
 };
 
-type RoutePageProps = {
-  alarmId?: number;
-  routeId?: number | string;
-  routeType?: string;
+type RouteSegment = {
+  trafficType?: number;
+  sectionTime?: number;
+  busNo?: string;
+  stationCount?: number;
+  startStop?: string;
+  endStop?: string;
 };
 
 type KakaoLatLng = { __brand: "KakaoLatLng" };
@@ -50,9 +54,7 @@ type KakaoMapsApi = {
     strokeColor: string;
     strokeStyle: "solid" | "shortdash" | "shortdot" | "shortdashdot";
     strokeWeight: number;
-  }) => {
-    setMap: (map: KakaoMapInstance) => void;
-  };
+  }) => { setMap: (map: KakaoMapInstance) => void };
 };
 
 type KakaoApi = {
@@ -114,6 +116,7 @@ function normalizeRouteData(routeData?: string): NormalizedRouteData | null {
 
   try {
     const parsed = JSON.parse(routeData) as {
+      mapObj?: string;
       segments?: unknown;
       [key: string]: unknown;
     };
@@ -126,26 +129,27 @@ function normalizeRouteData(routeData?: string): NormalizedRouteData | null {
           ? rawSegments
           : [];
 
-    return {
-      ...parsed,
-      segments,
-    };
+    return { ...parsed, segments };
   } catch (error) {
     console.error("routeData parse error", error);
     return null;
   }
 }
 
-export default function RoutePage({
-  alarmId,
-  routeId,
-  routeType,
-}: RoutePageProps) {
-  const mapRef = useRef<HTMLDivElement | null>(null);
-  const fallbackRouteData =
-    '{"@type": "bus", "mapObj": "1054:1:57:66@1055:1:57:69", "payment": 1600, "routeId": 354, "segments": ["java.util.ArrayList", [{"@type": "walk", "distance": 170, "sectionTime": 3, "trafficType": 3}, {"@type": "bus", "busNo": "420", "busType": 11, "endStop": "신사역.푸른저축은행", "distance": 8244, "startStop": "동대문역.흥인지문", "busRouteId": 1054, "localBusId": "100100068", "sectionTime": 25, "startStopId": 80606, "trafficType": 2, "stationCount": 9, "startStopOrder": 0, "busProviderCode": 4, "localBusStationId": "100000365", "stationProviderCode": 4}, {"@type": "walk", "distance": 134, "sectionTime": 2, "trafficType": 3}, {"@type": "bus", "busNo": "4212", "busType": 12, "endStop": "사당역", "distance": 6626, "startStop": "신사역4번출구", "busRouteId": 1055, "localBusId": "100100234", "sectionTime": 24, "startStopId": 105855, "trafficType": 2, "stationCount": 12, "startStopOrder": 0, "busProviderCode": 4, "localBusStationId": "121000109", "stationProviderCode": 4}, {"@type": "walk", "distance": 182, "sectionTime": 3, "trafficType": 3}]], "totalTime": 57, "totalWalk": 486, "transferCount": 1, "routePreviewId": null, "busTransitCount": 2}';
+function toSegments(value: unknown): RouteSegment[] {
+  if (!Array.isArray(value)) return [];
+  return value.filter(
+    (v): v is RouteSegment => typeof v === "object" && v !== null,
+  );
+}
 
-  const { data: detailAlarmData } = useGetDetailAlarm({ alarmId });
+export default function RoutePage() {
+  const mapRef = useRef<HTMLDivElement | null>(null);
+  const routeContentRef = useRef<HTMLDivElement | null>(null);
+  const [routeBarHeight, setRouteBarHeight] = useState(0);
+  const { data: detailAlarmData, isLoading } = useGetDetailAlarm({
+    alarmId: 43,
+  });
   const alarmDetail = detailAlarmData?.data;
 
   const requestRouteId = alarmDetail?.routeId;
@@ -165,23 +169,22 @@ export default function RoutePage({
     endY: requestEndY,
     arrivalTime: requestArrivalTime,
   });
+  void detailRouteData;
 
-  const routeDetail = detailRouteData?.data;
-  const displayArrivalTime =
-    routeDetail?.arrivalTime ?? alarmDetail?.arrivalTime;
+  const displayArrivalTime = alarmDetail?.arrivalTime;
   const displayStartName = alarmDetail?.startName;
   const displayEndName = alarmDetail?.endName;
-  const normalizedRouteData = normalizeRouteData(
-    alarmDetail?.routeData ?? fallbackRouteData,
-  );
+  const requestActualTime = alarmDetail?.actualTime;
+  const requestRouteSegments = toSegments(alarmDetail?.routeSegments);
+
+  const normalizedRouteData = normalizeRouteData(alarmDetail?.routeData);
   const mapObj =
     typeof normalizedRouteData?.mapObj === "string"
       ? normalizedRouteData.mapObj
       : null;
-  console.log("normalizedRouteData:", normalizedRouteData);
 
-  const parsedArrival = displayArrivalTime
-    ? new Date(displayArrivalTime)
+  const parsedArrival = requestArrivalTime
+    ? new Date(requestArrivalTime)
     : null;
   const hasValidArrival =
     parsedArrival instanceof Date && !Number.isNaN(parsedArrival.getTime());
@@ -199,8 +202,6 @@ export default function RoutePage({
         hour12: false,
       })
     : "";
-  void routeId;
-  void routeType;
 
   useEffect(() => {
     if (!mapRef.current || !mapObj) return;
@@ -268,11 +269,33 @@ export default function RoutePage({
     };
   }, [mapObj]);
 
+  useEffect(() => {
+    const element = routeContentRef.current;
+    if (!element) return;
+
+    const measure = () => {
+      setRouteBarHeight(element.offsetHeight);
+    };
+
+    measure();
+
+    const observer = new ResizeObserver(() => {
+      measure();
+    });
+    observer.observe(element);
+
+    return () => {
+      observer.disconnect();
+    };
+  }, [requestRouteSegments, displayStartName, displayEndName]);
+
+  if (isLoading) return <div>불러오는 중...</div>;
+
   return (
     <div className="flex h-screen flex-col">
       <Header />
       <div ref={mapRef} className="h-[285px] w-full" />
-      <div className="mx-4 mt-5 flex flex-1 flex-col overflow-y-auto">
+      <div className="mx-4 mt-5 flex flex-1 flex-col overflow-y-auto [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
         <div>
           <div className="flex flex-col gap-[14px]">
             <div className="rounded-[9px] border border-(--Lightgray) px-4 py-[11px]">
@@ -303,8 +326,85 @@ export default function RoutePage({
               </div>
             </div>
           </div>
-          <div className="my-[32px] h-[103px] w-full rounded-[10px] border border-(--GreenNormal)"></div>
-          <div></div>
+
+          <div className="my-[32px] flex h-[80px] w-full flex-col rounded-[10px] border border-(--GreenNormal) px-5 py-[10px]">
+            <span>선택 경로 안내</span>
+            <div>
+              <span>{requestActualTime}</span>
+              <span>분 도착 예상</span>
+            </div>
+          </div>
+
+          <div className="flex gap-[18px]">
+            <div
+              className="w-[16px] rounded-full bg-[#E5E7EB]"
+              style={{ height: `${routeBarHeight}px` }}
+            />
+            <div ref={routeContentRef} className="w-full">
+              <div className="flex items-center gap-2">
+                <span className="text-[17px] leading-[17px] font-semibold text-[#323232]">
+                  {displayStartName}
+                </span>
+                <span className="text-[17px] leading-[17px] text-(--GreenNormal)">
+                  출발
+                </span>
+              </div>
+
+              {requestRouteSegments.map((segment, index) => {
+                if (segment.trafficType === 3) {
+                  return (
+                    <div key={`walk-${index}`}>
+                      <div className="mt-2 text-[15px]">
+                        도보{" "}
+                        <span className="text-[19px] leading-[19px] font-semibold text-[#323232]">
+                          {segment.sectionTime ?? 0}
+                        </span>
+                        분
+                      </div>
+                      <div className="my-[18px] h-px w-full bg-[#E5E7EB]" />
+                    </div>
+                  );
+                }
+
+                if (segment.trafficType === 2) {
+                  return (
+                    <div key={`bus-${index}`}>
+                      <div className="mb-1 text-[15px] leading-[15px] font-semibold">
+                        <span className="text-[19px] leading-[19px] font-semibold text-[#323232]">
+                          {segment.sectionTime ?? 0}
+                        </span>
+                        분
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span>{segment.startStop}</span>
+                        <span>승차</span>
+                      </div>
+                      <div className="my-2 w-full rounded-[10px] border border-[#e4e4e4] px-4 py-[10px]">
+                        <span className="rounded-[6px] bg-(--GreenNormal) px-2 py-1 text-white">
+                          {segment.busNo}
+                        </span>
+                      </div>
+                      <div className="text-[12px] leading-[12px] text-(--Lightgray)">
+                        {segment.stationCount ?? 0}개 정류장 이동
+                      </div>
+                      <div className="my-[18px] h-px w-full bg-[#E5E7EB]" />
+                      <div className="text-[17px] leading-[17px] font-semibold">
+                        {segment.endStop} 하차
+                      </div>
+                      <div className="my-[18px] h-px w-full bg-[#E5E7EB]" />
+                    </div>
+                  );
+                }
+
+                return null;
+              })}
+
+              <div className="flex items-center gap-2">
+                <span>{displayEndName}</span>
+                <span className="text-(--GreenNormal)">도착</span>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>

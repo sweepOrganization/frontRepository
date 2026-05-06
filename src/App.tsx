@@ -80,7 +80,7 @@ function App() {
           }
         />
         <Route
-          path="/route/:routeId"
+          path="/route/:alarmId"
           element={
             <ProtectedRoute>
               <RoutePage />
