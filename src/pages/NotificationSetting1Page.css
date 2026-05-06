@@ -55,7 +55,8 @@
 /* 오늘 날짜 */
 .react-datepicker__day--today {
   color: #009632 !important;
-  font-weight: 400 !important;
+  font-weight: 900 !important;
+  font-size: 18px; /*폰트크기조정*/
 }
 
 /* 선택된 날짜 */
