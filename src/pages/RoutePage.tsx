@@ -554,13 +554,25 @@ export default function RoutePage() {
       const firstSegmentPoint = segments.find(
         (seg) => (seg.points?.length ?? 0) > 0,
       )?.points[0];
+      const lastSegmentPoint = segments
+        .slice()
+        .reverse()
+        .find((seg) => (seg.points?.length ?? 0) > 0)
+        ?.points.at(-1);
       const hasRequestStart =
         typeof requestStartX === "number" && typeof requestStartY === "number";
+      const hasRequestEnd =
+        typeof requestEndX === "number" && typeof requestEndY === "number";
       const shouldDrawStartConnector =
         hasRequestStart &&
         firstSegmentPoint &&
         (!isSameCoordinate(requestStartX, firstSegmentPoint.x) ||
           !isSameCoordinate(requestStartY, firstSegmentPoint.y));
+      const shouldDrawEndConnector =
+        hasRequestEnd &&
+        lastSegmentPoint &&
+        (!isSameCoordinate(requestEndX, lastSegmentPoint.x) ||
+          !isSameCoordinate(requestEndY, lastSegmentPoint.y));
 
       if (shouldDrawStartConnector) {
         new kakao.maps.Polyline({
@@ -569,7 +581,20 @@ export default function RoutePage() {
             new kakao.maps.LatLng(requestStartY, requestStartX),
             new kakao.maps.LatLng(firstSegmentPoint.y, firstSegmentPoint.x),
           ],
-          strokeColor: "#9CA3AF",
+          strokeColor: "#767676",
+          strokeStyle: "solid",
+          strokeWeight: 5,
+        }).setMap(map);
+      }
+
+      if (shouldDrawEndConnector) {
+        new kakao.maps.Polyline({
+          map,
+          path: [
+            new kakao.maps.LatLng(lastSegmentPoint.y, lastSegmentPoint.x),
+            new kakao.maps.LatLng(requestEndY, requestEndX),
+          ],
+          strokeColor: "#767676",
           strokeStyle: "solid",
           strokeWeight: 5,
         }).setMap(map);
@@ -585,6 +610,31 @@ export default function RoutePage() {
           strokeWeight: 5,
         }).setMap(map);
       });
+
+      for (let i = 0; i < segments.length - 1; i += 1) {
+        const currentPoints = segments[i]?.points ?? [];
+        const nextPoints = segments[i + 1]?.points ?? [];
+        if (currentPoints.length === 0 || nextPoints.length === 0) continue;
+
+        const currentLast = currentPoints[currentPoints.length - 1];
+        const nextFirst = nextPoints[0];
+        const shouldDrawInterSegmentConnector =
+          !isSameCoordinate(currentLast.x, nextFirst.x) ||
+          !isSameCoordinate(currentLast.y, nextFirst.y);
+
+        if (!shouldDrawInterSegmentConnector) continue;
+
+        new kakao.maps.Polyline({
+          map,
+          path: [
+            new kakao.maps.LatLng(currentLast.y, currentLast.x),
+            new kakao.maps.LatLng(nextFirst.y, nextFirst.x),
+          ],
+          strokeColor: "#767676",
+          strokeStyle: "solid",
+          strokeWeight: 5,
+        }).setMap(map);
+      }
     })().catch((error) => {
       console.error(error);
     });
@@ -592,7 +642,7 @@ export default function RoutePage() {
     return () => {
       cancelled = true;
     };
-  }, [mapObj, requestStartX, requestStartY]);
+  }, [mapObj, requestStartX, requestStartY, requestEndX, requestEndY]);
 
   useEffect(() => {
     const element = routeContentRef.current;
