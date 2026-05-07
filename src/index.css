@@ -1,5 +1,15 @@
 @import "tailwindcss";
 
+html,
+body,
+#root {
+  min-width: 375px;
+}
+
+body {
+  overflow-x: hidden;
+}
+
 :root {
   /* 기본 지하철 노선 */
   --line-1: #263c96;
