@@ -26,7 +26,6 @@ export default function HomePage() {
   const [alarmList, setAlarmList] = useState<Alarm[]>([]);
   const [busInfo, setBusInfo] = useState<any>(null);
   const [remainSeconds, setRemainSeconds] = useState<number | null>(null);
-  const [testProgress, setTestProgress] = useState(0);
 
   useEffect(() => {
     const getAlarms = async () => {
@@ -103,11 +102,26 @@ export default function HomePage() {
     });
   };
 
-  const getExpectedArrivalTime = (startTime: string, totalTime?: number) => {
-    if (!totalTime) return "";
-
+  const getDepartureTime = (startTime: string, prepareTime?: number) => {
     const date = new Date(startTime);
-    date.setMinutes(date.getMinutes() + totalTime);
+
+    date.setMinutes(date.getMinutes() + (prepareTime ?? 0));
+
+    return date.toLocaleTimeString("ko-KR", {
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: false,
+    });
+  };
+
+  const getExpectedArrivalTime = (
+    startTime: string,
+    prepareTime?: number,
+    actualTime?: number,
+  ) => {
+    const date = new Date(startTime);
+
+    date.setMinutes(date.getMinutes() + (prepareTime ?? 0) + (actualTime ?? 0));
 
     return date.toLocaleTimeString("ko-KR", {
       hour: "2-digit",
@@ -174,17 +188,6 @@ export default function HomePage() {
   }, [mainAlarm]);
 
   useEffect(() => {
-    const timer = setInterval(() => {
-      setTestProgress((prev) => {
-        if (prev >= 100) return 100;
-        return prev + 100 / 1800;
-      });
-    }, 1000);
-
-    return () => clearInterval(timer);
-  }, []);
-
-  useEffect(() => {
     if (remainSeconds === null) return;
 
     const timer = setInterval(() => {
@@ -237,9 +240,20 @@ export default function HomePage() {
     마을버스: "var(--bus-sky)",
   };
 
-  const busType = mainAlarm?.title || "";
+  const routeSegments = parsedRouteData?.segments?.flat?.() || [];
 
-  const busColor = busColorMap[busType] || "var(--bus-red)";
+  const busSegment = routeSegments.find(
+    (segment: any) => segment.trafficType === 2,
+  );
+
+  const busType = busSegment?.lane?.[0]?.type || "";
+  const busName =
+    busSegment?.lane?.[0]?.busNo ||
+    busSegment?.lane?.[0]?.busNoList ||
+    busSegment?.lane?.[0]?.name ||
+    "";
+
+  const busColor = busColorMap[busType] || "var(--bus-blue)";
   if (!mainAlarm) return null;
 
   const startedMinutesAgo = Math.floor(
@@ -248,7 +262,21 @@ export default function HomePage() {
   );
 
   const isStartedRecently = startedMinutesAgo >= 0 && startedMinutesAgo <= 10;
-  const rawProgress = testProgress;
+  const now = new Date().getTime();
+  const start = new Date(mainAlarm.startTime).getTime();
+
+  const minutesLeft = Math.max(0, Math.ceil((start - now) / (1000 * 60)));
+  const progressBaseMinutes = Math.min(mainAlarm.prepareTime ?? 60, 60);
+
+  const shouldStartProgress = minutesLeft <= progressBaseMinutes;
+
+  const elapsedMinutes = shouldStartProgress
+    ? progressBaseMinutes - minutesLeft
+    : 0;
+
+  const rawProgress = shouldStartProgress
+    ? Math.min(100, (elapsedMinutes / progressBaseMinutes) * 100)
+    : 0;
   const progressPercent = `${Math.max(0, Math.min(100, rawProgress))}%`;
   const testOneHourBefore = isOneHourBefore(mainAlarm.startTime);
 
@@ -256,19 +284,19 @@ export default function HomePage() {
     <div className="relative min-h-screen bg-[#FBFBFB] px-4 pt-[53px] pb-[100px]">
       <section className="rounded-[10px] bg-gradient-to-r from-[#50C864] to-[#80DF7C] px-[10px] pt-[10px] pb-[12px]">
         <h1 className="text-[21px] leading-[150%] font-semibold text-white">
-          {testProgress >= 100
+          {rawProgress >= 100
             ? "출발 하셨나요?"
-            : testProgress >= 50
-              ? `출발까지 ${Math.ceil(30 - ((testProgress - 50) / 50) * 30)}분 남았어요`
-              : testProgress > 0
-                ? `${Math.ceil(60 - (testProgress / 100) * 60)}분 후에 출발해야해요`
-                : "일정을 확인해보세요"}
+            : minutesLeft <= 60
+              ? `출발까지 ${minutesLeft}분 남았어요`
+              : "일정을 확인해보세요"}
         </h1>
 
         <div className="relative mt-[8px] h-[39px] w-full">
           <div
             className="absolute top-0 transition-all duration-700"
-            style={{ left: `calc(${progressPercent} - 18px)` }}
+            style={{
+              left: `max(0px, calc(${progressPercent} - 18px))`,
+            }}
           >
             <Duck
               image={
@@ -299,7 +327,7 @@ export default function HomePage() {
             <button className="text-[22px] text-[#999]">...</button>
           </div>
 
-          <div className="mt-[10px] flex items-center gap-[13px]">
+          <div className="mt-[10px] flex items-center gap-[12px]">
             <span className="rounded-[5px] bg-[#EFF9F0] px-[7px] py-[4px] text-[13px] font-semibold text-[var(--Green)]">
               일정 {formatTime(mainAlarm.arrivalTime)}
             </span>
@@ -324,8 +352,8 @@ export default function HomePage() {
                 </p>
               </div>
 
-              <span className="mt-[4px] text-[38px] font-semibold text-[#222]">
-                {formatTime(mainAlarm.startTime)}
+              <span className="text-[38px] font-semibold text-[#222]">
+                {getDepartureTime(mainAlarm.startTime, mainAlarm.prepareTime)}
               </span>
             </div>
 
@@ -350,10 +378,11 @@ export default function HomePage() {
             <div className="mr-[20px] flex flex-col items-start">
               <p className="text-[15px] font-medium text-[#888]">도착 예정</p>
 
-              <span className="mt-[4px] text-[38px] font-light text-[#888]">
+              <span className="text-[38px] font-light text-[#888]">
                 {getExpectedArrivalTime(
                   mainAlarm.startTime,
-                  mainAlarm.actualTime ?? mainAlarm.totalTime,
+                  mainAlarm.prepareTime,
+                  mainAlarm.actualTime,
                 )}
               </span>
             </div>
@@ -369,7 +398,7 @@ export default function HomePage() {
                   backgroundColor: busColor,
                 }}
               >
-                {busType}
+                {busName || busType}
               </span>
             )}
 
@@ -442,17 +471,6 @@ export default function HomePage() {
               )
             ) : (
               <div className="flex items-start gap-[16px]">
-                {mainAlarm.routeType === "PATH_TYPE_BUS" && (
-                  <span
-                    className="mt-[2px] rounded-[5px] px-[8px] py-[5px] text-[13px] font-semibold text-white"
-                    style={{
-                      backgroundColor: busColor,
-                    }}
-                  >
-                    {busType}
-                  </span>
-                )}
-
                 {mainAlarm.routeType === "PATH_TYPE_SUBWAY" && (
                   <span
                     className="mt-[10px] rounded-[5px] px-[6px] py-[3px] text-[13px] font-semibold text-white"
@@ -530,7 +548,7 @@ export default function HomePage() {
 
       <button
         type="button"
-        onClick={() => navigate("/notification-setting")}
+        onClick={() => navigate("/notification-setting-1")}
         className="fixed right-[29px] bottom-[25px] flex h-[78px] w-[78px] items-center justify-center rounded-full bg-[#55C969] text-[58px] leading-none font-light text-white shadow-lg"
       >
         +
