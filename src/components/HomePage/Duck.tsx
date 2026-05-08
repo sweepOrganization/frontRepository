@@ -1,7 +1,15 @@
 type DuckProps = {
-  image?: string;
+  image: string;
 };
 
-export default function Duck({ image = "/duck-01.svg" }: DuckProps) {
-  return <img src={image} alt="오리" className="h-[39px] w-[28px]" />;
+export default function Duck({ image }: DuckProps) {
+  return (
+    <div
+      className="h-[39px] w-[39px] bg-contain bg-center bg-no-repeat transition-all duration-500 ease-out"
+      style={{
+        backgroundImage: `url(${image})`,
+        opacity: 1,
+      }}
+    />
+  );
 }
