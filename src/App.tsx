@@ -1,5 +1,7 @@
 import { Navigate, Route, Routes } from "react-router-dom";
 import "./App.css";
+import BackHeader from "./components/BackHeader";
+import Header from "./components/Header";
 import FcmAutoRegistration from "./components/fcm/FcmAutoRegistration";
 import HomePage from "./pages/HomePage";
 import LoginPage from "./pages/LoginPage";
@@ -18,6 +20,28 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
   return <>{children}</>;
 }
 
+function WithHeader({ children }: { children: React.ReactNode }) {
+  return (
+    <>
+      <div className="w-full">
+        <Header />
+      </div>
+      {children}
+    </>
+  );
+}
+
+function WithBackHeader({ children }: { children: React.ReactNode }) {
+  return (
+    <>
+      <div className="w-full">
+        <BackHeader />
+      </div>
+      {children}
+    </>
+  );
+}
+
 function App() {
   return (
     <>
@@ -27,7 +51,9 @@ function App() {
           path="/"
           element={
             <ProtectedRoute>
-              <HomePage />
+              <WithHeader>
+                <HomePage />
+              </WithHeader>
             </ProtectedRoute>
           }
         />
@@ -35,7 +61,9 @@ function App() {
           path="/start"
           element={
             <ProtectedRoute>
-              <StartPage />
+              <WithHeader>
+                <StartPage />
+              </WithHeader>
             </ProtectedRoute>
           }
         />
@@ -43,7 +71,9 @@ function App() {
           path="/notification-setting-1"
           element={
             <ProtectedRoute>
-              <NotificationSetting1Page />
+              <WithBackHeader>
+                <NotificationSetting1Page />
+              </WithBackHeader>
             </ProtectedRoute>
           }
         />
@@ -51,7 +81,9 @@ function App() {
           path="/notification-setting-2"
           element={
             <ProtectedRoute>
-              <NotificationSetting2Page />
+              <WithBackHeader>
+                <NotificationSetting2Page />
+              </WithBackHeader>
             </ProtectedRoute>
           }
         />
@@ -59,7 +91,9 @@ function App() {
           path="/notification-setting-3"
           element={
             <ProtectedRoute>
-              <NotificationSetting3Page />
+              <WithBackHeader>
+                <NotificationSetting3Page />
+              </WithBackHeader>
             </ProtectedRoute>
           }
         />
@@ -67,7 +101,9 @@ function App() {
           path="/notification-setting-4"
           element={
             <ProtectedRoute>
-              <NotificationSetting4Page />
+              <WithBackHeader>
+                <NotificationSetting4Page />
+              </WithBackHeader>
             </ProtectedRoute>
           }
         />
@@ -75,7 +111,9 @@ function App() {
           path="/notification-setting-5"
           element={
             <ProtectedRoute>
-              <NotificationSetting5Page />
+              <WithBackHeader>
+                <NotificationSetting5Page />
+              </WithBackHeader>
             </ProtectedRoute>
           }
         />
@@ -83,7 +121,9 @@ function App() {
           path="/route/:alarmId"
           element={
             <ProtectedRoute>
-              <RoutePage />
+              <WithHeader>
+                <RoutePage />
+              </WithHeader>
             </ProtectedRoute>
           }
         />

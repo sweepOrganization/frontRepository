@@ -15,7 +15,7 @@ export default function BackHeader({ title }: BackHeaderProps) {
         className="flex h-[24px] w-[24px] items-center justify-center"
         onClick={() => navigate(-1)}
       >
-        <img src="/arrow-icon.svg" alt="" className="h-[20px] w-[20px]" />
+        <img src="/Vector.png" alt="뒤로가기" className="h-4 w-[9px]" />
       </button>
       {title ? (
         <h1 className="mx-auto pr-[24px] text-[16px] font-semibold text-(--Dark)">
