@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import type { PathType } from "../api/SearchRoute";
 import RouteItem from "../components/route/RouteItem";
@@ -23,11 +23,36 @@ function addMinutesToTime(time: string, minutesToAdd: number) {
   return `${String(nextHours).padStart(2, "0")}:${String(nextMinutes).padStart(2, "0")}:${String(safeSeconds).padStart(2, "0")}`;
 }
 
+function getDeduplicatedSegments(segments: TrafficResponse["segments"] = []) {
+  return segments.filter((segment, index) => {
+    if (segment.trafficType !== 2) return true;
+
+    const prev = segments[index - 1];
+    if (!prev || prev.trafficType !== 2) return true;
+
+    const hasSameStops =
+      Boolean(segment.startStop) &&
+      Boolean(segment.endStop) &&
+      segment.startStop === prev.startStop &&
+      segment.endStop === prev.endStop;
+
+    return !hasSameStops;
+  });
+}
+
+function getSegmentsTotalMinutes(segments: TrafficResponse["segments"] = []) {
+  return segments.reduce((sum, segment) => {
+    const sectionTime = Number(segment.sectionTime ?? 0);
+    return sum + (Number.isFinite(sectionTime) ? Math.max(0, sectionTime) : 0);
+  }, 0);
+}
+
 export default function NotificationSetting3Page() {
   const navigate = useNavigate();
   const [selectedPathType, setSelectedPathType] =
     useState<PathType>("PATH_TYPE_SUBWAY");
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
+  const [showAllRoutes, setShowAllRoutes] = useState(false);
   const setAlarmRouteId = useSetAlarmRouteId();
   const setAlarmRoutePreviewId = useSetAlarmRoutePreviewId();
   const setAlarmEdt = useSetAlarmEdt();
@@ -42,6 +67,23 @@ export default function NotificationSetting3Page() {
   const trafficResponseList: TrafficResponse[] =
     routeData?.data?.trafficResponseList ?? [];
   const boardingInfos: BoardingInfo[] = routeData?.data?.boardingInfos ?? [];
+  const sortedRoutes = useMemo(() => {
+    return trafficResponseList
+      .map((route, originalIndex) => {
+        const deduplicatedSegments = getDeduplicatedSegments(route.segments);
+        const totalMinutes = getSegmentsTotalMinutes(deduplicatedSegments);
+
+        return {
+          route,
+          boardingInfo: boardingInfos[originalIndex],
+          originalIndex,
+          totalMinutes,
+        };
+      })
+      .sort((a, b) => a.totalMinutes - b.totalMinutes);
+  }, [trafficResponseList, boardingInfos]);
+  const visibleRoutes = showAllRoutes ? sortedRoutes : sortedRoutes.slice(0, 5);
+  const hasMoreRoutes = sortedRoutes.length > 5;
 
   const selectedRouteId =
     selectedIndex !== null
@@ -104,22 +146,23 @@ export default function NotificationSetting3Page() {
         </div>
 
         <div className="flex flex-col gap-[10px]">
-          {trafficResponseList.map(({ routeId, segments = [] }, index) => (
+          {visibleRoutes.map(({ route, boardingInfo, originalIndex }) => (
             <RouteItem
-              key={`route-item-${index}-${String(routeId)}-${
-                boardingInfos[index]?.recommendedDepartureTime ?? "00:00:00"
+              key={`route-item-${originalIndex}-${String(route.routeId)}-${
+                boardingInfo?.recommendedDepartureTime ?? "00:00:00"
               }`}
-              index={index}
-              routeId={routeId}
-              segments={segments}
-              boardingInfo={boardingInfos[index]}
+              index={originalIndex}
+              routeId={route.routeId}
+              segments={route.segments ?? []}
+              boardingInfo={boardingInfo}
               recommendedDepartureTime={
-                boardingInfos[index]?.recommendedDepartureTime ?? "00:00:00"
+                boardingInfo?.recommendedDepartureTime ?? "00:00:00"
               }
-              isSelected={selectedIndex === index}
+              isSelected={selectedIndex === originalIndex}
               onClick={() => {
                 setSelectedIndex((prev) => {
-                  const nextIndex = prev === index ? null : index;
+                  const nextIndex =
+                    prev === originalIndex ? null : originalIndex;
                   const nextRouteId =
                     nextIndex !== null
                       ? (trafficResponseList[nextIndex]?.routeId ?? null)
@@ -168,6 +211,15 @@ export default function NotificationSetting3Page() {
               }}
             />
           ))}
+          {!showAllRoutes && hasMoreRoutes && (
+            <button
+              type="button"
+              onClick={() => setShowAllRoutes(true)}
+              className="mt-1 self-center text-[12px] leading-[12px] text-(--Lightgray) underline underline-offset-2"
+            >
+              더보기
+            </button>
+          )}
         </div>
       </div>
 
