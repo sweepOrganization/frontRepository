@@ -1,0 +1,88 @@
+@import url("https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css");
+@import "tailwindcss";
+
+html,
+body,
+#root {
+  min-width: 375px;
+}
+
+body {
+  margin: 0;
+  overflow-x: hidden;
+  font-family: "Pretendard", sans-serif;
+}
+
+#root {
+  width: 100%;
+  max-width: 767px;
+  margin: 0 auto;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+:root {
+  /* 기본 지하철 노선 */
+  --line-1: #263c96;
+  --line-2: #3cb44a;
+  --line-3: #f06e00;
+  --line-4: #2c9ede;
+  --line-5: #8936e0;
+  --line-6: #b5500b;
+  --line-7: #697215;
+  --line-8: #e51e6e;
+  --line-9: #d1a62c;
+
+  /* 기타 노선 */
+  --line-airport: #73b6e4; /* 공항 */
+  --line-gyeongui: #76bc9e; /* 경의중앙 */
+  --line-gyeongchun: #08af7b; /* 경춘 */
+  --line-su-in-bundang: #eba900; /* 수인분당 */
+  --line-sinbundang: #a71e31; /* 신분당 */
+  --line-gyeonggang: #2673f2; /* 경강 */
+  --line-seohae: #8bc53f; /* 서해 */
+  --line-incheon-1: #6f99d0; /* 인천1 */
+  --line-incheon-2: #f4ab3e; /* 인천2 */
+  --line-ever: #77c371; /* 에버라인 */
+  --line-uijeongbu: #ff9d27; /* 의정부 */
+  --line-ui-sinseol: #c6c100; /* 우이신설 */
+  --line-gimpo-gold: #96710a; /* 김포골드 */
+  --line-sillim: #4e67a5; /* 신림 */
+  --line-gtx-a: #905a89; /* GTX-A */
+
+  /* 버스 종류 */
+  --bus-green: #59be0a; /* 지선버스 */
+  --bus-blue: #1e7bdb; /* 간선버스 */
+  --bus-navy: #404d93; /* 심야/광역 계열 */
+  --bus-yellow: #d8a500; /* 순환버스 */
+  --bus-red: #ff5b5b; /* 광역버스 */
+  --bus-gray: #505050; /* 공항/일반/기타 */
+  --bus-sky: #65a6d2; /* 마을버스 */
+
+  /* 폰트컬러 */
+  --White: #fcfcfc;
+  --Lightgray: #868686;
+  --Gray: #767676;
+  --Darkgray: #505050;
+  --Neutral: #323232;
+  --Normal: #282828;
+  --Dark: #1e1e1e;
+  --Green: #009632;
+
+  /* 그린컬러 */
+  --GreenLight: #eff9f0;
+  --GreenLightHover: #e6f6e9;
+  --GreenLightActive: #ccedd1;
+  --GreenNormal: #5bc66b;
+  --GreenNormalHover: #52b260;
+  --GreenNormalActive: #499e56;
+  --GreenDark: #449550;
+  --GreenDarkHover: #377740;
+  --GreenDarkActive: #295930;
+  --GreenDarker: #204525;
+}
