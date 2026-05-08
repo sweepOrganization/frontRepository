@@ -373,6 +373,22 @@ export default function HomePage() {
   const isPrepareStarted = now >= prepareStartTime;
   const isDeparted = now >= departureTime;
 
+  const leftLabel = isPrepareStarted ? "출발" : "준비 시작";
+
+  const leftTime = isPrepareStarted
+    ? getDepartureTime(mainAlarm.startTime, mainAlarm.prepareTime)
+    : formatTime(mainAlarm.startTime);
+
+  const rightLabel = isPrepareStarted ? "도착 예정" : "출발 알람";
+
+  const rightTime = isPrepareStarted
+    ? getExpectedArrivalTime(
+        mainAlarm.startTime,
+        mainAlarm.prepareTime,
+        mainAlarm.actualTime,
+      )
+    : getDepartureTime(mainAlarm.startTime, mainAlarm.prepareTime);
+
   const progressBaseSeconds = Math.min(mainAlarm.prepareTime ?? 60, 60) * 60;
 
   const progressStartTime = prepareStartTime - progressBaseSeconds * 1000;
@@ -453,21 +469,6 @@ export default function HomePage() {
                 ×
               </span>
             </button>
-
-            {isOpen && selectedAlarmId !== null && (
-              <div
-                className="fixed inset-0 z-50 flex items-center justify-center"
-                style={{ backgroundColor: "rgba(0, 0, 0, 0.3)" }}
-                onClick={handleCloseModal}
-              >
-                <div onClick={(e) => e.stopPropagation()}>
-                  <DeleteModal
-                    alarmId={selectedAlarmId}
-                    onClose={handleCloseModal}
-                  />
-                </div>
-              </div>
-            )}
           </div>
 
           <div className="mt-[10px] flex items-center gap-[12px]">
@@ -484,35 +485,27 @@ export default function HomePage() {
               <div className="flex items-center gap-[8px]">
                 {(isPrepareStarted || isDeparted) && (
                   <div
-                    className={`h-[16px] w-[16px] rounded-full ${
-                      isDeparted ? "bg-[#FF7A00]" : "bg-[#1E7BDB]"
+                    className={`h-[8px] w-[8px] rounded-full ${
+                      isPrepareStarted ? "bg-[#FF7A00]" : "bg-[#1E7BDB]"
                     } ${
-                      isDeparted
-                        ? "shadow-[0_0_0_10px_rgba(255,122,0,0.2)]"
-                        : "shadow-[0_0_0_10px_rgba(30,123,219,0.2)]"
+                      isPrepareStarted
+                        ? "shadow-[0_0_0_4px_rgba(255,122,0,0.2)]"
+                        : "shadow-[0_0_0_4px_rgba(30,123,219,0.2)]"
                     }`}
                   />
                 )}
 
                 <p
                   className={`text-[19px] font-semibold ${
-                    isDeparted
-                      ? "text-[#FF7A00]"
-                      : isPrepareStarted
-                        ? "text-[#1E7BDB]"
-                        : "text-[#222]"
+                    isPrepareStarted ? "text-[#FF7A00]" : "text-[#1E7BDB]"
                   }`}
                 >
-                  {isDeparted
-                    ? "출발"
-                    : isPrepareStarted
-                      ? "준비 시작"
-                      : "출발"}
+                  {leftLabel}
                 </p>
               </div>
 
               <span className="text-[38px] font-semibold text-[#222]">
-                {getDepartureTime(mainAlarm.startTime, mainAlarm.prepareTime)}
+                {leftTime}
               </span>
             </div>
 
@@ -533,14 +526,12 @@ export default function HomePage() {
             </div>
 
             <div className="flex flex-col items-start">
-              <p className="text-[15px] font-medium text-[#888]">도착 예정</p>
+              <p className="text-[15px] font-medium text-[#888]">
+                {rightLabel}
+              </p>
 
               <span className="text-[38px] font-light text-[#888]">
-                {getExpectedArrivalTime(
-                  mainAlarm.startTime,
-                  mainAlarm.prepareTime,
-                  mainAlarm.actualTime,
-                )}
+                {rightTime}
               </span>
             </div>
           </div>
@@ -730,6 +721,18 @@ export default function HomePage() {
           <div className="absolute top-0 left-1/2 h-full w-[3px] -translate-x-1/2 rounded-full bg-white" />
         </div>
       </button>
+
+      {isOpen && selectedAlarmId !== null && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center"
+          style={{ backgroundColor: "rgba(0, 0, 0, 0.3)" }}
+          onClick={handleCloseModal}
+        >
+          <div onClick={(e) => e.stopPropagation()}>
+            <DeleteModal alarmId={selectedAlarmId} onClose={handleCloseModal} />
+          </div>
+        </div>
+      )}
     </div>
   );
 }
