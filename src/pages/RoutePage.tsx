@@ -194,6 +194,24 @@ function splitBusNos(busNo?: string) {
     );
 }
 
+function toBusTypeByBusNo(segments: RouteSegment[]) {
+  const map: Record<string, number> = {};
+
+  segments.forEach((segment) => {
+    if (segment.trafficType !== 2 || typeof segment.busType !== "number") {
+      return;
+    }
+
+    splitBusNos(segment.busNo).forEach((busNo) => {
+      if (!map[busNo]) {
+        map[busNo] = segment.busType as number;
+      }
+    });
+  });
+
+  return map;
+}
+
 function getBusColorClass(busType?: number) {
   const busColorClassMap: Record<number, string> = {
     1: "bg-(--bus-green)",
@@ -374,6 +392,10 @@ export default function RoutePage() {
   const requestRouteSegments = toSegments(alarmDetail?.routeSegments);
   const displayRouteSegments = useMemo(
     () => toDisplayRouteSegments(requestRouteSegments),
+    [requestRouteSegments],
+  );
+  const busTypeByBusNo = useMemo(
+    () => toBusTypeByBusNo(requestRouteSegments),
     [requestRouteSegments],
   );
   const mapObj =
@@ -859,7 +881,9 @@ export default function RoutePage() {
                                 className="grid grid-cols-[41px_1fr] items-center gap-2"
                               >
                                 <span
-                                  className={`inline-flex h-[22px] w-[41px] items-center justify-center rounded-[5px] px-2 py-[3px] text-center text-[13px] leading-[13px] font-semibold text-white ${getBusColorClass(segment.busType)}`}
+                                  className={`inline-flex h-[22px] w-[41px] items-center justify-center rounded-[5px] px-2 py-[3px] text-center text-[13px] leading-[13px] font-semibold text-white ${getBusColorClass(
+                                    busTypeByBusNo[busNo] ?? segment.busType,
+                                  )}`}
                                 >
                                   {busNo}
                                 </span>
