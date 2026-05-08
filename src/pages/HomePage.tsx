@@ -713,6 +713,17 @@ export default function HomePage() {
 
       <button
         type="button"
+        onClick={() => {
+          localStorage.removeItem("accessToken");
+          navigate("/login");
+        }}
+        className="mt-[24px] w-full text-center text-[14px] text-[#999]"
+      >
+        로그아웃
+      </button>
+
+      <button
+        type="button"
         onClick={() => navigate("/notification-setting-1")}
         className="fixed right-[29px] bottom-[25px] flex h-[60px] w-[60px] items-center justify-center rounded-full bg-[var(--GreenNormal)] shadow-lg"
       >
