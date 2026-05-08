@@ -54,12 +54,12 @@ export default function NotificationSettingPage() {
   };
 
   return (
-    <div className="box-border min-h-screen w-full px-5 pt-[52px] pb-[143px]">
-      <h1 className="text-[26px] leading-[150%] font-semibold text-(--Normal)">
+    <div className="box-border min-h-screen w-full px-4 pt-[14px] pb-[143px]">
+      <h1 className="text-[23px] leading-[150%] font-semibold text-(--Normal)">
         일정을 언제로 할까요?
       </h1>
 
-      <p className="mt-[4px] text-[17px] font-normal text-(--Darkgray)">
+      <p className="mt-[4px] text-[15px] font-normal text-(--Darkgray)">
         날짜와 도착 시간을 알려주세요
       </p>
 
@@ -105,6 +105,7 @@ export default function NotificationSettingPage() {
           <DatePicker
             selected={date}
             onChange={(d: Date | null) => setDate(d)}
+            minDate={new Date()}
             locale={ko}
             inline
             renderCustomHeader={({ date, decreaseMonth, increaseMonth }) => (

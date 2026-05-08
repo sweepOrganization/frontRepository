@@ -56,11 +56,11 @@ export default function NotificationSetting3Page() {
     >
       <div className="mx-4 mt-[14px] flex flex-1 flex-col overflow-y-auto pb-6 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
         <div className="mb-[45px] flex h-16 flex-col gap-[4px]">
-          <span className="text-[23px] leading-[34px] font-bold">
+          <span className="text-[23px] leading-[34px] font-semibold">
             어떤 경로로 가시나요?
           </span>
-          <span className="text-[17px] leading-[24px] text-(--DarkGray)">
-            출발-도착지의 경로를 선택해주세요.
+          <span className="text-[17px] leading-[24px] text-(--Lightgray)">
+            출발→도착지의 경로를 선택해주세요.
           </span>
         </div>
 
