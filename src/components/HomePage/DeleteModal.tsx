@@ -22,13 +22,13 @@ export default function DeleteModal({ alarmId, onClose }: DeleteModalProps) {
 
   return (
     <div className="flex h-[297px] w-[285px] flex-col overflow-hidden rounded-[10px] border border-[#E4E4E4] bg-white">
-      <div className="mx-[70.5px] mt-5 mb-[27px] flex flex-col items-center justify-center">
+      <div className="mx-[70.5px] mt-5 mb-[27px] flex flex-col items-center justify-between">
         <img
           src="/delete-duck-icon.svg"
           alt="오리"
           className="mx-[35px] mb-[14px]"
         />
-        <span className="px-[3px]text-[17px] font-semibold text-(--Normal)">
+        <span className="px-[3px]text-[17px] mb-2 font-semibold text-(--Normal)">
           알람을 삭제할까요?
         </span>
         <p className="text-center text-[15px] font-normal text-(--Darkgray)">
