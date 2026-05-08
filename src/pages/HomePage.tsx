@@ -1,8 +1,9 @@
-import DeleteModal from "../components/HomePage/DeleteModal";
-import useGetDetailRoute from "../hooks/queries/useGetDetailRoute";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import DeleteModal from "../components/HomePage/DeleteModal";
 import Duck from "../components/HomePage/Duck";
+import useLogoutMutation from "../hooks/mutations/useLogoutMutation";
+import useGetDetailRoute from "../hooks/queries/useGetDetailRoute";
 
 type Alarm = {
   alarmId: number;
@@ -23,6 +24,11 @@ type Alarm = {
 
 export default function HomePage() {
   const navigate = useNavigate();
+  const { mutate: logout } = useLogoutMutation();
+
+  const handleLogout = () => {
+    logout();
+  };
 
   const [mainAlarm, setMainAlarm] = useState<Alarm | null>(null);
   const [alarmList, setAlarmList] = useState<Alarm[]>([]);
@@ -713,10 +719,7 @@ export default function HomePage() {
 
       <button
         type="button"
-        onClick={() => {
-          localStorage.removeItem("accessToken");
-          navigate("/login");
-        }}
+        onClick={handleLogout}
         className="mt-[24px] w-full text-center text-[14px] text-[#999]"
       >
         로그아웃
