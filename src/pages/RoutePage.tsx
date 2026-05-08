@@ -1,6 +1,5 @@
 ﻿import { useEffect, useMemo, useRef, useState } from "react";
 import { useParams } from "react-router-dom";
-import DeleteModal from "../components/HomePage/DeleteModal";
 import useGetDetailAlarm from "../hooks/queries/useGetDetailAlarm";
 import useGetDetailRoute from "../hooks/queries/useGetDetailRoute";
 
@@ -698,7 +697,6 @@ export default function RoutePage() {
 
   return (
     <div className="flex h-screen flex-col overflow-hidden">
-      <DeleteModal />
       <div ref={mapRef} className="h-[285px] w-full" />
       <div className="mt-5 flex min-h-0 flex-1 flex-col px-4">
         <div className="shrink-0">
