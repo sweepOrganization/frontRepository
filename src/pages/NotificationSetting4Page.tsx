@@ -62,10 +62,10 @@ export default function NotificationSetting4Page() {
     <div className="flex h-screen flex-col">
       <div className="mx-4 mt-[14px] flex flex-1 flex-col overflow-y-auto pb-6 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
         <div className="mb-[45px] flex h-16 flex-col gap-[4px]">
-          <span className="text-[23px] leading-[34px] font-bold">
+          <span className="text-[23px] leading-[34px] font-semibold">
             준비는 얼마나 걸리나요?
           </span>
-          <span className="text-[17px] leading-[24px] text-(--DarkGray)">
+          <span className="text-[17px] leading-[24px] text-(--Lightgray)">
             준비에 소요되는 시간을 입력해주세요
           </span>
         </div>

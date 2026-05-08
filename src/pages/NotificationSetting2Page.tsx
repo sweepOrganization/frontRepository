@@ -162,8 +162,8 @@ export default function NotificationStep2Page() {
   return (
     <div className="flex h-screen flex-col bg-white">
       {/* 상단 고정 */}
-      <div className="border-b-3 border-[#E4E4E4] bg-[#FBFBFB] pt-[24px] pr-[20px] pb-[30px] pl-[30px]">
-        <h1 className="text-[23px] font-normal">
+      <div className="border-b-3 border-[#E4E4E4] bg-[#FBFBFB] px-4 pt-[14px] pb-[30px]">
+        <h1 className="text-[23px] font-semibold">
           출발지와 일정 장소는 어디인가요?
         </h1>
 

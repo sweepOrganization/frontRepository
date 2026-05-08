@@ -1,3 +1,4 @@
+import DeleteModal from "../components/HomePage/DeleteModal";
 import useGetDetailRoute from "../hooks/queries/useGetDetailRoute";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -28,6 +29,18 @@ export default function HomePage() {
   const [busInfo, setBusInfo] = useState<any>(null);
   const [remainSeconds, setRemainSeconds] = useState<number | null>(null);
   const [currentTime, setCurrentTime] = useState(new Date());
+  const [isOpen, setIsOpen] = useState(false);
+  const [selectedAlarmId, setSelectedAlarmId] = useState<number | null>(null);
+
+  function handleOpenModal(alarmId: number) {
+    setSelectedAlarmId(alarmId);
+    setIsOpen(true);
+  }
+
+  function handleCloseModal() {
+    setIsOpen(false);
+    setSelectedAlarmId(null);
+  }
 
   useEffect(() => {
     const getAlarms = async () => {
@@ -431,7 +444,30 @@ export default function HomePage() {
             <p className="text-[15px] font-medium text-[var(--Darkgray)]">
               {formatDate(mainAlarm.arrivalTime)}
             </p>
-            <button className="text-[22px] text-[#999]">...</button>
+            <button
+              type="button"
+              onClick={() => handleOpenModal(mainAlarm.alarmId)}
+              className="flex h-[24px] w-[24px] items-center justify-center"
+            >
+              <span className="text-[32px] leading-none font-light text-[#999]">
+                ×
+              </span>
+            </button>
+
+            {isOpen && selectedAlarmId !== null && (
+              <div
+                className="fixed inset-0 z-50 flex items-center justify-center"
+                style={{ backgroundColor: "rgba(0, 0, 0, 0.3)" }}
+                onClick={handleCloseModal}
+              >
+                <div onClick={(e) => e.stopPropagation()}>
+                  <DeleteModal
+                    alarmId={selectedAlarmId}
+                    onClose={handleCloseModal}
+                  />
+                </div>
+              </div>
+            )}
           </div>
 
           <div className="mt-[10px] flex items-center gap-[12px]">

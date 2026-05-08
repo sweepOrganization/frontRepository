@@ -1,6 +1,5 @@
 ﻿import { useEffect, useMemo, useRef, useState } from "react";
 import { useParams } from "react-router-dom";
-import Header from "../components/Header";
 import useGetDetailAlarm from "../hooks/queries/useGetDetailAlarm";
 import useGetDetailRoute from "../hooks/queries/useGetDetailRoute";
 
@@ -294,8 +293,8 @@ function toSegmentBoardingInfos(value: unknown): SegmentBoardingInfo[] {
 function formatWayName(wayName?: string) {
   const trimmed = wayName?.trim();
   if (!trimmed) return "";
-  if (trimmed === "외선순환") return "외선순환행";
-  return `${trimmed}역 방면`;
+  if (trimmed.endsWith("행")) return trimmed;
+  return `${trimmed}행`;
 }
 
 function getRemainingCountdownText(departureTime?: string, nowDate?: Date) {
@@ -698,7 +697,6 @@ export default function RoutePage() {
 
   return (
     <div className="flex h-screen flex-col overflow-hidden">
-      <Header />
       <div ref={mapRef} className="h-[285px] w-full" />
       <div className="mt-5 flex min-h-0 flex-1 flex-col px-4">
         <div className="shrink-0">
@@ -853,7 +851,7 @@ export default function RoutePage() {
                             )}
                           </div>
                         ) : null}
-                        <div className="my-2 flex w-full flex-col rounded-[10px] border border-[#e4e4e4] px-4 py-[10px]">
+                        <div className="my-2 flex w-full flex-col rounded-[10px] border border-[#e4e4e4] px-5 py-[10px]">
                           <div className="flex flex-col gap-2">
                             {splitBusNos(segment.busNo).map((busNo) => (
                               <div
@@ -865,29 +863,32 @@ export default function RoutePage() {
                                 >
                                   {busNo}
                                 </span>
-                                <div className="flex w-full flex-row items-center justify-between px-5">
-                                  {(busArrivalMessagesByBusNo[busNo] ?? []).map(
-                                    (message, messageIndex) => {
+                                <div className="flex w-full items-center justify-center text-center">
+                                  {(busArrivalMessagesByBusNo[busNo] ?? [])
+                                    .slice(0, 1)
+                                    .map((message, messageIndex) => {
                                       const { firstLine, secondLine } =
                                         splitArrivalMessage(message);
+                                      const normalizedSecondLine = secondLine
+                                        .replace(/[[\]]/g, "")
+                                        .trim();
 
                                       return (
                                         <span
                                           key={`${busNo}-arrive-${messageIndex}`}
-                                          className="min-w-[88px] text-[15px] leading-[15px] text-[#EF4444]"
+                                          className="min-w-[88px] text-[15px] leading-[15px]"
                                         >
-                                          <span className="block">
+                                          <span className="font-bold text-[#EF4444]">
                                             {firstLine}
                                           </span>
-                                          {secondLine ? (
-                                            <span className="mt-1 block text-[12px] leading-[12px]">
-                                              {secondLine}
+                                          {normalizedSecondLine ? (
+                                            <span className="ml-2 text-(--Darkgray)">
+                                              {normalizedSecondLine}
                                             </span>
                                           ) : null}
                                         </span>
                                       );
-                                    },
-                                  )}
+                                    })}
                                 </div>
                               </div>
                             ))}
@@ -949,19 +950,21 @@ export default function RoutePage() {
                             )}
                           </div>
                         ) : null}
-                        <div className="my-2 flex w-full flex-col rounded-[10px] border border-[#e4e4e4] px-4 py-[10px]">
+                        <div className="my-2 flex w-full flex-col rounded-[10px] border border-[#e4e4e4] px-5 py-[10px]">
                           {getMappedValueFromSources(
                             segment.sourceIndices,
                             segmentDepartureTimeByIndex,
                           ) ? (
-                            <span className="text-[15px] leading-[15px] font-bold text-[#323232]">
-                              {formatDepartureHourMinute(
-                                getMappedValueFromSources(
-                                  segment.sourceIndices,
-                                  segmentDepartureTimeByIndex,
-                                ),
-                              )}{" "}
-                              <span className="text-[#EF4444]">
+                            <div className="grid w-full grid-cols-[auto_1fr] items-center gap-2">
+                              <span className="text-[15px] leading-[15px] font-bold text-[#323232]">
+                                {formatDepartureHourMinute(
+                                  getMappedValueFromSources(
+                                    segment.sourceIndices,
+                                    segmentDepartureTimeByIndex,
+                                  ),
+                                )}
+                              </span>
+                              <span className="text-center text-[15px] leading-[15px] font-bold text-[#EF4444]">
                                 {getRemainingCountdownText(
                                   getMappedValueFromSources(
                                     segment.sourceIndices,
@@ -970,7 +973,7 @@ export default function RoutePage() {
                                   now,
                                 )}
                               </span>
-                            </span>
+                            </div>
                           ) : null}
                         </div>
                         <div className="text-[12px] leading-[12px] text-(--Lightgray)">
