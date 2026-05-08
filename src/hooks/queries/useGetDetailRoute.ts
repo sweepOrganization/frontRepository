@@ -42,13 +42,13 @@ export default function useGetDetailRoute({
     ],
     queryFn: () =>
       getDetailRoute({
-        routeId,
-        type,
-        startLat,
-        startLon,
-        endLat,
-        endLon,
-        arrivalTime,
+        routeId: routeId!,
+        type: type!,
+        startLat: startLat!,
+        startLon: startLon!,
+        endLat: endLat!,
+        endLon: endLon!,
+        arrivalTime: arrivalTime!,
       }),
     enabled:
       routeId !== undefined &&
@@ -58,6 +58,7 @@ export default function useGetDetailRoute({
       endLat !== undefined &&
       endLon !== undefined &&
       !!arrivalTime,
+
     refetchInterval: isPathTypeBus ? 60_000 : false,
   });
 }
