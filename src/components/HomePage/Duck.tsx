@@ -1,23 +1,14 @@
-import { useEffect, useState } from "react";
+type DuckProps = {
+  image: string;
+};
 
-export default function Duck() {
-  const [frame, setFrame] = useState(0);
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setFrame((prev) => (prev + 1) % 3);
-    }, 200);
-
-    return () => clearInterval(interval);
-  }, []);
-
+export default function Duck({ image }: DuckProps) {
   return (
     <div
-      className="h-[39px] w-[28px] bg-no-repeat"
+      className="h-[39px] w-[39px] bg-contain bg-center bg-no-repeat transition-all duration-500 ease-out"
       style={{
-        backgroundImage: "url('/duck.png')",
-        backgroundPosition: `-${frame * 28}px 0px`,
-        backgroundSize: "84px 39px",
+        backgroundImage: `url(${image})`,
+        opacity: 1,
       }}
     />
   );
