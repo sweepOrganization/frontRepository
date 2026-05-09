@@ -427,19 +427,15 @@ export default function RoutePage() {
     : null;
   const hasValidArrival =
     parsedArrival instanceof Date && !Number.isNaN(parsedArrival.getTime());
-  const displayArrival = hasValidArrival ? new Date(parsedArrival) : null;
-  if (displayArrival) {
-    displayArrival.setMinutes(displayArrival.getMinutes() + 20);
-  }
   const formattedArrivalDate = hasValidArrival
-    ? displayArrival!.toLocaleDateString("ko-KR", {
+    ? parsedArrival.toLocaleDateString("ko-KR", {
         month: "long",
         day: "numeric",
         weekday: "short",
       })
     : "";
   const formattedArrivalTime = hasValidArrival
-    ? displayArrival!.toLocaleTimeString("ko-KR", {
+    ? parsedArrival.toLocaleTimeString("ko-KR", {
         hour: "2-digit",
         minute: "2-digit",
         hour12: false,
