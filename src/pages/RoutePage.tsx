@@ -632,7 +632,7 @@ export default function RoutePage() {
           ],
           strokeColor: "#767676",
           strokeStyle: "solid",
-          strokeWeight: 5,
+          strokeWeight: 7,
         }).setMap(map);
       }
 
@@ -645,7 +645,7 @@ export default function RoutePage() {
           ],
           strokeColor: "#767676",
           strokeStyle: "solid",
-          strokeWeight: 5,
+          strokeWeight: 7,
         }).setMap(map);
       }
 
@@ -656,7 +656,7 @@ export default function RoutePage() {
           path: points.map((p) => new kakao.maps.LatLng(p.y, p.x)),
           strokeColor: seg.color || "#3b82f6",
           strokeStyle: normalizeStrokeStyle(seg.strokeStyle),
-          strokeWeight: 5,
+          strokeWeight: 7,
         }).setMap(map);
       });
 
@@ -681,7 +681,7 @@ export default function RoutePage() {
           ],
           strokeColor: "#767676",
           strokeStyle: "solid",
-          strokeWeight: 5,
+          strokeWeight: 7,
         }).setMap(map);
       }
     })().catch((error) => {
