@@ -6,6 +6,7 @@ type DurationPart = { value: number; unit: string };
 type RouteItemProps = {
   index: number;
   routeId?: number | null;
+  payment?: number;
   segments?: Segment[];
   boardingInfo?: BoardingInfo;
   recommendedDepartureTime?: string;
@@ -127,6 +128,7 @@ function getBusIconColor(busType?: number) {
 export default function RouteItem({
   index,
   routeId,
+  payment,
   segments = [],
   boardingInfo,
   recommendedDepartureTime = "00:00:00",
@@ -211,6 +213,7 @@ export default function RouteItem({
       <div className="text-[12px] text-(--Gray)">
         {formatKoreanTime(recommendedDepartureTime)} -{" "}
         {formatKoreanTime(arrivalTime)}
+        {typeof payment === "number" ? ` | ${payment.toLocaleString("ko-KR")}원` : ""}
       </div>
       <RouteBar segments={deduplicatedSegments} />
       <div className="mt-5">
