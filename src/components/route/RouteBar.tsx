@@ -23,7 +23,22 @@ function getSubwayColorClass(subwayCode?: number, lineName?: string) {
     7: "bg-(--line-7)",
     8: "bg-(--line-8)",
     9: "bg-(--line-9)",
+    21: "bg-(--line-incheon-1)",
+    22: "bg-(--line-incheon-2)",
+    91: "bg-(--line-gtx-a)",
+    101: "bg-(--line-airport)",
+    102: "bg-(--line-airport)",
+    104: "bg-(--line-gyeongui)",
+    107: "bg-(--line-ever)",
+    108: "bg-(--line-gyeongchun)",
+    109: "bg-(--line-sinbundang)",
+    110: "bg-(--line-uijeongbu)",
+    112: "bg-(--line-gyeonggang)",
+    113: "bg-(--line-ui-sinseol)",
     114: "bg-(--line-seohae)",
+    115: "bg-(--line-gimpo-gold)",
+    116: "bg-(--line-su-in-bundang)",
+    117: "bg-(--line-sillim)",
   };
 
   if (subwayCode && subwayColorClassMap[subwayCode]) {
@@ -56,9 +71,18 @@ function getBusColorClass(busType?: number) {
     3: "bg-(--bus-green)", //마을
     4: "bg-(--bus-red)", //직행좌석
     5: "bg-(--bus-sky)", //공항
+    6: "bg-[#7B1FA2]", //간선급행
+    10: "bg-[#607D8B]", //외곽
     11: "bg-(--bus-blue)", //간선
     12: "bg-(--bus-green)", //지선
+    13: "bg-[#F9A825]", //순환
     14: "bg-(--bus-red)", //광역
+    15: "bg-[#FF8C00]", //급행
+    16: "bg-[#8E44AD]", //관광버스
+    20: "bg-[#7CB342]", //농어촌버스
+    22: "bg-[#B71C1C]", //경기도 시외형버스
+    26: "bg-[#6A1B9A]", //급행간선
+    30: "bg-[#00A6B4]", //한강버스
   };
 
   if (typeof busType === "number" && busColorClassMap[busType]) {

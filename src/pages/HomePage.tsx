@@ -3,6 +3,8 @@ import { useNavigate } from "react-router-dom";
 import DeleteModal from "../components/HomePage/DeleteModal";
 import Duck from "../components/HomePage/Duck";
 import useLogoutMutation from "../hooks/mutations/useLogoutMutation";
+import useAlarmEntryPermission from "../hooks/useAlarmEntryPermission";
+import useGetAlarmList from "../hooks/queries/useGetAlarmList";
 import useGetDetailRoute from "../hooks/queries/useGetDetailRoute";
 
 type Alarm = {
@@ -42,7 +44,6 @@ type SegmentBoardingInfo = {
   availableTrains?: Array<{ departureTime?: string }>;
   arrivingBuses?: ArrivingBus[];
 };
-
 export default function HomePage() {
   const navigate = useNavigate();
   const { mutate: logout } = useLogoutMutation();
@@ -57,6 +58,8 @@ export default function HomePage() {
   const [isOpen, setIsOpen] = useState(false);
   const [selectedAlarmId, setSelectedAlarmId] = useState<number | null>(null);
   const [selectedBusIndex, setSelectedBusIndex] = useState(0);
+  const { isCheckingPermission, prepareAlarmEntry } = useAlarmEntryPermission();
+  const { data: alarmData, isLoading: isAlarmLoading } = useGetAlarmList();
 
   function handleOpenModal(alarmId: number) {
     setSelectedAlarmId(alarmId);
@@ -68,57 +71,57 @@ export default function HomePage() {
     setSelectedAlarmId(null);
   }
 
-  const getAlarms = async () => {
-    const token = localStorage.getItem("accessToken");
-
-    if (!token) {
-      navigate("/login");
+  const handleCreateAlarm = async () => {
+    const result = await prepareAlarmEntry();
+    if (!result.ok) {
+      alert(result.message);
       return;
     }
-
-    try {
-      const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/alarm`, {
-        method: "GET",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      const json = await res.json();
-      const now = new Date();
-      const detailAlarm = json?.data?.alarmDetailResponse;
-      const summaryAlarms = Array.isArray(json?.data?.alarmSummaryResponseList)
-        ? json.data.alarmSummaryResponseList
-        : [];
-
-      const sourceAlarms = [
-        ...(detailAlarm ? [detailAlarm] : []),
-        ...summaryAlarms,
-      ];
-
-      const alarms = sourceAlarms
-        .filter((alarm: Alarm) => new Date(alarm.arrivalTime) > now)
-        .sort(
-          (a: Alarm, b: Alarm) =>
-            new Date(a.arrivalTime).getTime() -
-            new Date(b.arrivalTime).getTime(),
-        );
-
-      if (alarms.length === 0) {
-        navigate("/start");
-        return;
-      }
-
-      setMainAlarm(alarms[0]);
-      setAlarmList(alarms.slice(1));
-    } catch (error) {
-      console.error("알람 조회 실패", error);
-    }
+    navigate("/notification-setting-1");
   };
 
   useEffect(() => {
-    getAlarms();
-  }, [navigate]);
+    if (isAlarmLoading) {
+      return;
+    }
+
+    const now = new Date();
+    const detailAlarm = alarmData?.data?.alarmDetailResponse;
+    const summaryAlarms = Array.isArray(
+      alarmData?.data?.alarmSummaryResponseList,
+    )
+      ? alarmData.data.alarmSummaryResponseList
+      : [];
+
+    const sourceAlarms = [
+      ...(detailAlarm ? [detailAlarm] : []),
+      ...summaryAlarms,
+    ];
+    if (sourceAlarms.length === 0) {
+      navigate("/start");
+      return;
+    }
+
+    const alarms = sourceAlarms
+      .filter((alarm: Alarm) => new Date(alarm.arrivalTime) > now)
+      .sort(
+        (a: Alarm, b: Alarm) =>
+          new Date(a.arrivalTime).getTime() - new Date(b.arrivalTime).getTime(),
+      );
+
+    if (alarms.length > 0) {
+      setMainAlarm(alarms[0]);
+      setAlarmList(alarms.slice(1));
+      return;
+    }
+
+    const allSortedAlarms = [...sourceAlarms].sort(
+      (a: Alarm, b: Alarm) =>
+        new Date(a.arrivalTime).getTime() - new Date(b.arrivalTime).getTime(),
+    );
+    setMainAlarm(allSortedAlarms[0]);
+    setAlarmList(allSortedAlarms.slice(1));
+  }, [alarmData, navigate, isAlarmLoading]);
 
   const formatTime = (dateTime: string) => {
     const date = new Date(dateTime);
@@ -234,10 +237,8 @@ export default function HomePage() {
     const target = new Date(now);
     target.setHours(Number(hour), Number(minute), Number(second), 0);
 
-    const diffSeconds = Math.max(
-      0,
-      Math.ceil((target.getTime() - now.getTime()) / 1000),
-    );
+    const diffSeconds = Math.ceil((target.getTime() - now.getTime()) / 1000);
+    if (diffSeconds <= 0) return "지나감";
 
     const min = Math.floor(diffSeconds / 60);
     const sec = diffSeconds % 60;
@@ -495,6 +496,11 @@ export default function HomePage() {
               {mainAlarm.title}
             </span>
           </div>
+          {isDeparturePhase && (
+            <p className="mt-[6px] text-[11px] leading-[130%] text-[var(--Gray)]">
+              실시간 교통정보에 따라 최대 20분 정도 늦어질 수 있습니다.
+            </p>
+          )}
 
           <div className="mt-[38px] flex items-end justify-between">
             <div className="flex w-[95px] flex-col items-start">
@@ -568,11 +574,10 @@ export default function HomePage() {
             {isRealtimeSectionVisible ? (
               mainAlarm.routeType === "PATH_TYPE_BUS" ? (
                 <div className="flex flex-1 flex-col gap-[16px]">
-                  {selectedBusInfoCount > 1 && (
+                  {busSegments.length > 1 && (
                     <div className="flex flex-wrap gap-[8px]">
-                      {busSegments
-                        .slice(0, selectedBusInfoCount)
-                        .map((segment: RouteSegment, index: number) => (
+                      {busSegments.map(
+                        (segment: RouteSegment, index: number) => (
                           <button
                             key={`bus-tab-${index}`}
                             type="button"
@@ -588,7 +593,23 @@ export default function HomePage() {
                               segment.routeName ??
                               "버스"}
                           </button>
-                        ))}
+                        ),
+                      )}
+                    </div>
+                  )}
+
+                  {busSegments.length === 1 && (
+                    <div className="flex">
+                      <span
+                        className={`rounded-[6px] px-[8px] py-[4px] text-[13px] font-semibold text-white ${getBusColorClass(
+                          busSegments[0]?.busType,
+                        )}`}
+                      >
+                        {busSegments[0]?.busNo ??
+                          busSegments[0]?.busName ??
+                          busSegments[0]?.routeName ??
+                          "버스"}
+                      </span>
                     </div>
                   )}
 
@@ -780,7 +801,8 @@ export default function HomePage() {
 
       <button
         type="button"
-        onClick={() => navigate("/notification-setting-1")}
+        onClick={handleCreateAlarm}
+        disabled={isCheckingPermission}
         className="fixed right-[29px] bottom-[25px] flex h-[60px] w-[60px] items-center justify-center rounded-full bg-[var(--GreenNormal)] shadow-lg"
       >
         <div className="relative h-[26px] w-[26px]">
