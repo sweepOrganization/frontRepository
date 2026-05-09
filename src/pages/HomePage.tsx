@@ -208,6 +208,23 @@ export default function HomePage() {
     return message || "운행정보 없음";
   };
 
+  const getBusExtraMessage = (bus?: ArrivingBus) => {
+    if (!bus) return "";
+    if (formatBusRemain(bus) === "운행정보 없음") return "";
+
+    return bus.arrivalMessage?.includes("[")
+      ? (bus.arrivalMessage.split("[")[1]?.replace("]", "") ?? "")
+      : "";
+  };
+
+  const isBusRateLimited = (bus?: ArrivingBus) => {
+    const message = bus?.arrivalMessage ?? "";
+    return (
+      message.includes("Key인증실패") ||
+      message.includes("LIMITED NUMBER OF SERVICE REQUESTS EXCEEDS")
+    );
+  };
+
   const getSubwayRemainText = (time?: string) => {
     if (!time) return "-";
 
@@ -284,11 +301,7 @@ export default function HomePage() {
     (segment: RouteSegment) => segment.trafficType === 2,
   );
 
-  const {
-    data: detailRouteData,
-    dataUpdatedAt,
-  } =
-    useGetDetailRoute({
+  const { data: detailRouteData, dataUpdatedAt } = useGetDetailRoute({
     routeId: mainAlarm?.routeId,
     type: mainAlarm?.routeType,
     startX: mainAlarm?.startX,
@@ -331,7 +344,10 @@ export default function HomePage() {
   };
 
   const busColorClass = getBusColorClass(busSegment?.busType);
-  const selectedBusInfoCount = Math.min(busSegments.length, busBoardingInfos.length);
+  const selectedBusInfoCount = Math.min(
+    busSegments.length,
+    busBoardingInfos.length,
+  );
   const safeSelectedBusIndex =
     selectedBusInfoCount > 0
       ? Math.min(selectedBusIndex, selectedBusInfoCount - 1)
@@ -340,7 +356,8 @@ export default function HomePage() {
   const selectedBoardingInfo = busBoardingInfos[safeSelectedBusIndex];
   const firstBus = selectedBoardingInfo?.arrivingBuses?.[0];
   const secondBus = selectedBoardingInfo?.arrivingBuses?.[1];
-  const selectedBusColorClass = getBusColorClass(selectedBusSegment?.busType);
+  const hasBusRateLimitError =
+    isBusRateLimited(firstBus) || isBusRateLimited(secondBus);
 
   useEffect(() => {
     setSelectedBusIndex(0);
@@ -553,82 +570,80 @@ export default function HomePage() {
                 <div className="flex flex-1 flex-col gap-[16px]">
                   {selectedBusInfoCount > 1 && (
                     <div className="flex flex-wrap gap-[8px]">
-                      {busSegments.slice(0, selectedBusInfoCount).map((segment: RouteSegment, index: number) => (
-                        <button
-                          key={`bus-tab-${index}`}
-                          type="button"
-                          onClick={() => setSelectedBusIndex(index)}
-                          className={`rounded-[6px] px-[8px] py-[4px] text-[13px] font-semibold ${
-                            safeSelectedBusIndex === index
-                              ? `${getBusColorClass(segment.busType)} text-white`
-                              : "bg-[#f1f1f1] text-[#666]"
-                          }`}
-                        >
-                          {segment.busNo ?? segment.busName ?? segment.routeName ?? "버스"}
-                        </button>
-                      ))}
+                      {busSegments
+                        .slice(0, selectedBusInfoCount)
+                        .map((segment: RouteSegment, index: number) => (
+                          <button
+                            key={`bus-tab-${index}`}
+                            type="button"
+                            onClick={() => setSelectedBusIndex(index)}
+                            className={`rounded-[6px] px-[8px] py-[4px] text-[13px] font-semibold ${
+                              safeSelectedBusIndex === index
+                                ? `${getBusColorClass(segment.busType)} text-white`
+                                : "bg-[#f1f1f1] text-[#666]"
+                            }`}
+                          >
+                            {segment.busNo ??
+                              segment.busName ??
+                              segment.routeName ??
+                              "버스"}
+                          </button>
+                        ))}
                     </div>
                   )}
 
                   <div className="flex flex-1 flex-col">
                     <div className="flex items-center gap-[8px]">
-                      <span
-                        className={`flex h-[22px] items-center justify-center rounded-[5px] px-[7px] py-[13px] text-[13px] leading-[13px] font-semibold text-white ${selectedBusColorClass}`}
-                      >
-                        {selectedBusSegment?.busNo ??
-                          selectedBusSegment?.busName ??
-                          selectedBusSegment?.routeName ??
-                          "버스"}
-                      </span>
-
                       <span className="text-[17px] leading-[17px] font-semibold text-[var(--Neutral)]">
                         {selectedBusSegment?.startStop ?? "승차 위치"}
                       </span>
                     </div>
 
-                    <div className="mt-[8px] flex items-center">
-                      <div className="flex-1 text-center">
-                        <p
-                          className={`mt-[10px] text-[15px] font-semibold ${
-                            displayMinutes <= 30
-                              ? "text-[#F60707]"
-                              : "text-[var(--Neutral)]"
-                          }`}
-                        >
-                          {formatBusRemain(firstBus).split("[")[0]}
-                        </p>
-
-                        <p
-                          className={`mt-[4px] text-[13px] font-normal ${
-                            displayMinutes <= 30
-                              ? "text-[#8F0303]"
-                              : "text-[var(--Gray)]"
-                          }`}
-                        >
-                          {firstBus?.arrivalMessage?.includes("[")
-                            ? firstBus.arrivalMessage
-                                .split("[")[1]
-                                ?.replace("]", "")
-                            : ""}
+                    {hasBusRateLimitError ? (
+                      <div className="mt-[14px] text-center">
+                        <p className="text-[14px] font-medium whitespace-pre-line text-[var(--Gray)]">
+                          {
+                            "실시간 조회가 일시 제한되었어요.\n잠시 후 다시 시도해주세요."
+                          }
                         </p>
                       </div>
+                    ) : (
+                      <div className="mt-[8px] flex items-center">
+                        <div className="flex-1 text-center">
+                          <p
+                            className={`mt-[10px] text-[15px] font-semibold ${
+                              displayMinutes <= 30
+                                ? "text-[#F60707]"
+                                : "text-[var(--Neutral)]"
+                            }`}
+                          >
+                            {formatBusRemain(firstBus).split("[")[0]}
+                          </p>
 
-                      <div className="h-[26px] w-[1px] bg-[#e4e4e4]" />
+                          <p
+                            className={`mt-[4px] text-[13px] font-normal ${
+                              displayMinutes <= 30
+                                ? "text-[#8F0303]"
+                                : "text-[var(--Gray)]"
+                            }`}
+                          >
+                            {getBusExtraMessage(firstBus)}
+                          </p>
+                        </div>
 
-                      <div className="flex-1 text-center">
-                        <p className="mt-[10px] text-[15px] font-semibold text-[var(--Neutral)]">
-                          {formatBusRemain(secondBus).split("[")[0]}
-                        </p>
+                        <div className="h-[26px] w-[1px] bg-[#e4e4e4]" />
 
-                        <p className="mt-[4px] text-[13px] font-normal text-[var(--Gray)]">
-                          {secondBus?.arrivalMessage?.includes("[")
-                            ? secondBus.arrivalMessage
-                                .split("[")[1]
-                                ?.replace("]", "")
-                            : ""}
-                        </p>
+                        <div className="flex-1 text-center">
+                          <p className="mt-[10px] text-[15px] font-semibold text-[var(--Neutral)]">
+                            {formatBusRemain(secondBus).split("[")[0]}
+                          </p>
+
+                          <p className="mt-[4px] text-[13px] font-normal text-[var(--Gray)]">
+                            {getBusExtraMessage(secondBus)}
+                          </p>
+                        </div>
                       </div>
-                    </div>
+                    )}
                   </div>
                 </div>
               ) : (
