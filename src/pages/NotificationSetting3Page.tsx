@@ -153,6 +153,7 @@ export default function NotificationSetting3Page() {
               }`}
               index={originalIndex}
               routeId={route.routeId}
+              payment={route.payment}
               segments={route.segments ?? []}
               boardingInfo={boardingInfo}
               recommendedDepartureTime={

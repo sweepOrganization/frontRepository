@@ -195,6 +195,11 @@ function splitBusNos(busNo?: string) {
     );
 }
 
+function normalizeBusDisplayName(name?: string) {
+  if (!name) return "";
+  return name.replace(/\(.*\)/, "").trim();
+}
+
 function toBusTypeByBusNo(segments: RouteSegment[]) {
   const map: Record<string, number> = {};
 
@@ -220,9 +225,18 @@ function getBusColorClass(busType?: number) {
     3: "bg-(--bus-green)",
     4: "bg-(--bus-red)",
     5: "bg-(--bus-sky)",
+    6: "bg-[#7B1FA2]",
+    10: "bg-[#607D8B]",
     11: "bg-(--bus-blue)",
     12: "bg-(--bus-green)",
+    13: "bg-[#F9A825]",
     14: "bg-(--bus-red)",
+    15: "bg-[#FF8C00]",
+    16: "bg-[#8E44AD]",
+    20: "bg-[#7CB342]",
+    22: "bg-[#B71C1C]",
+    26: "bg-[#6A1B9A]",
+    30: "bg-[#00A6B4]",
   };
 
   if (typeof busType === "number" && busColorClassMap[busType]) {
@@ -239,9 +253,18 @@ function getBusTextColorStyle(busType?: number) {
     3: "var(--bus-green)",
     4: "var(--bus-red)",
     5: "var(--bus-sky)",
+    6: "#7B1FA2",
+    10: "#607D8B",
     11: "var(--bus-blue)",
     12: "var(--bus-green)",
+    13: "#F9A825",
     14: "var(--bus-red)",
+    15: "#FF8C00",
+    16: "#8E44AD",
+    20: "#7CB342",
+    22: "#B71C1C",
+    26: "#6A1B9A",
+    30: "#00A6B4",
   };
 
   return {
@@ -263,7 +286,22 @@ function getSubwayTextColorStyle(subwayCode?: number) {
     7: "#747F00",
     8: "#E6186C",
     9: "#BDB092",
-    117: "#6789CA",
+    21: "#6F99D0",
+    22: "#F4AB3E",
+    91: "#905A89",
+    101: "#73B6E4",
+    102: "#73B6E4",
+    104: "#76BC9E",
+    107: "#77C371",
+    108: "#08AF7B",
+    109: "#A71E31",
+    110: "#FF9D27",
+    112: "#2673F2",
+    113: "#C6C100",
+    114: "#8BC53F",
+    115: "#96710A",
+    116: "#EBA900",
+    117: "#4E67A5",
   };
 
   return {
@@ -285,7 +323,22 @@ function getSubwayColor(subwayCode?: number) {
     7: "#747F00",
     8: "#E6186C",
     9: "#BDB092",
-    117: "#6789CA",
+    21: "#6F99D0",
+    22: "#F4AB3E",
+    91: "#905A89",
+    101: "#73B6E4",
+    102: "#73B6E4",
+    104: "#76BC9E",
+    107: "#77C371",
+    108: "#08AF7B",
+    109: "#A71E31",
+    110: "#FF9D27",
+    112: "#2673F2",
+    113: "#C6C100",
+    114: "#8BC53F",
+    115: "#96710A",
+    116: "#EBA900",
+    117: "#4E67A5",
   };
 
   if (typeof subwayCode === "number" && subwayColorMap[subwayCode]) {
@@ -427,15 +480,19 @@ export default function RoutePage() {
     : null;
   const hasValidArrival =
     parsedArrival instanceof Date && !Number.isNaN(parsedArrival.getTime());
+  const displayArrival = hasValidArrival ? new Date(parsedArrival) : null;
+  if (displayArrival) {
+    displayArrival.setMinutes(displayArrival.getMinutes() + 20);
+  }
   const formattedArrivalDate = hasValidArrival
-    ? parsedArrival.toLocaleDateString("ko-KR", {
+    ? displayArrival!.toLocaleDateString("ko-KR", {
         month: "long",
         day: "numeric",
         weekday: "short",
       })
     : "";
   const formattedArrivalTime = hasValidArrival
-    ? parsedArrival.toLocaleTimeString("ko-KR", {
+    ? displayArrival!.toLocaleTimeString("ko-KR", {
         hour: "2-digit",
         minute: "2-digit",
         hour12: false,
@@ -628,7 +685,7 @@ export default function RoutePage() {
           ],
           strokeColor: "#767676",
           strokeStyle: "solid",
-          strokeWeight: 5,
+          strokeWeight: 7,
         }).setMap(map);
       }
 
@@ -641,7 +698,7 @@ export default function RoutePage() {
           ],
           strokeColor: "#767676",
           strokeStyle: "solid",
-          strokeWeight: 5,
+          strokeWeight: 7,
         }).setMap(map);
       }
 
@@ -652,7 +709,7 @@ export default function RoutePage() {
           path: points.map((p) => new kakao.maps.LatLng(p.y, p.x)),
           strokeColor: seg.color || "#3b82f6",
           strokeStyle: normalizeStrokeStyle(seg.strokeStyle),
-          strokeWeight: 5,
+          strokeWeight: 7,
         }).setMap(map);
       });
 
@@ -677,7 +734,7 @@ export default function RoutePage() {
           ],
           strokeColor: "#767676",
           strokeStyle: "solid",
-          strokeWeight: 5,
+          strokeWeight: 7,
         }).setMap(map);
       }
     })().catch((error) => {
@@ -900,14 +957,14 @@ export default function RoutePage() {
                             {splitBusNos(segment.busNo).map((busNo) => (
                               <div
                                 key={`${index}-${busNo}`}
-                                className="grid grid-cols-[41px_1fr] items-center gap-2"
+                                className="grid grid-cols-[auto_1fr] items-center gap-2"
                               >
                                 <span
-                                  className={`inline-flex h-[22px] w-[41px] items-center justify-center rounded-[5px] px-2 py-[3px] text-center text-[13px] leading-[13px] font-semibold text-white ${getBusColorClass(
+                                  className={`inline-flex h-[22px] items-center justify-center rounded-[5px] px-[5px] py-[3px] text-center text-[13px] leading-[13px] font-semibold whitespace-nowrap text-white ${getBusColorClass(
                                     busTypeByBusNo[busNo] ?? segment.busType,
                                   )}`}
                                 >
-                                  {busNo}
+                                  {normalizeBusDisplayName(busNo)}
                                 </span>
                                 <div className="flex w-full items-center justify-center text-center">
                                   {(busArrivalsByBusNo[busNo] ?? [])

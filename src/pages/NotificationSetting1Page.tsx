@@ -32,13 +32,20 @@ export default function NotificationSettingPage() {
         ? (Number(time.hour) % 12) + 12
         : Number(time.hour) % 12;
 
-    const formattedDate = `${date.getFullYear()}-${String(
-      date.getMonth() + 1,
-    ).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+    const selectedDateTime = new Date(date);
+    selectedDateTime.setHours(hour24, Number(time.minute), 0, 0);
+    selectedDateTime.setMinutes(selectedDateTime.getMinutes() - 20);
 
-    const formattedTime = `${formattedDate}T${String(hour24).padStart(2, "0")}:${String(
-      time.minute,
-    ).padStart(2, "0")}:00`;
+    const formattedDate = `${selectedDateTime.getFullYear()}-${String(
+      selectedDateTime.getMonth() + 1,
+    ).padStart(2, "0")}-${String(selectedDateTime.getDate()).padStart(2, "0")}`;
+
+    const formattedTime = `${formattedDate}T${String(
+      selectedDateTime.getHours(),
+    ).padStart(
+      2,
+      "0",
+    )}:${String(selectedDateTime.getMinutes()).padStart(2, "0")}:00`;
 
     setAlarmArrivalTime(formattedTime);
   }, [date, time, isTimeSelected, setAlarmArrivalTime]);
@@ -65,7 +72,8 @@ export default function NotificationSettingPage() {
 
       <div className="mt-[40px]">
         <label className="mb-[10px] block text-[17px] font-semibold text-(--Normal)">
-          주제 <span className="font-normal text-(--Lightgray)">(선택)</span>
+          약속이름{" "}
+          <span className="font-normal text-(--Lightgray)">(필수)</span>
         </label>
 
         <input
@@ -240,12 +248,12 @@ export default function NotificationSettingPage() {
 
         <button
           type="button"
-          disabled={!date || !isTimeSelected}
+          disabled={!title.trim() || !date || !isTimeSelected}
           onClick={() => {
             navigate("/notification-setting-2");
           }}
           className={`h-[67px] w-full text-[21px] font-normal ${
-            !date || !isTimeSelected
+            !title.trim() || !date || !isTimeSelected
               ? "bg-(--GreenLight) text-[#b1d8b6]"
               : "bg-(--GreenNormal) text-white"
           }`}

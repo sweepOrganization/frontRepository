@@ -13,6 +13,7 @@ export type TrafficResponse = {
   routeId?: number | null;
   routePreviewId?: string | null;
   totalTime?: number;
+  payment?: number;
   segments?: Segment[];
 };
 
