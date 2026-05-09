@@ -307,21 +307,25 @@ export default function HomePage() {
   const now = currentTime.getTime();
 
   const prepareStartTime = new Date(mainAlarm.startTime).getTime();
+  const departureAlarmTime =
+    prepareStartTime + (mainAlarm.prepareTime ?? 0) * 60 * 1000;
 
   const isPrepareStarted = now >= prepareStartTime;
+  const isBeforePrepareStart = now < prepareStartTime;
+  const isBeforeDepartureAlarm = now < departureAlarmTime;
+  const isDeparturePhase = !isBeforeDepartureAlarm;
 
-  const isBluePhase =
-    !isPrepareStarted && prepareStartTime - now <= 10 * 60 * 1000;
+  const isBluePhase = !isBeforePrepareStart && isBeforeDepartureAlarm;
 
-  const leftLabel = isPrepareStarted ? "출발" : "준비 시작";
+  const leftLabel = isDeparturePhase ? "출발" : "준비 시작";
 
-  const leftTime = isPrepareStarted
+  const leftTime = isDeparturePhase
     ? getDepartureTime(mainAlarm.startTime, mainAlarm.prepareTime)
     : formatTime(mainAlarm.startTime);
 
-  const rightLabel = isPrepareStarted ? "도착 예정" : "출발 알람";
+  const rightLabel = isDeparturePhase ? "도착 예정" : "출발 알람";
 
-  const rightTime = isPrepareStarted
+  const rightTime = isDeparturePhase
     ? getExpectedArrivalTime(
         mainAlarm.startTime,
         mainAlarm.prepareTime,
@@ -350,7 +354,7 @@ export default function HomePage() {
 
   const progressPercent = `${Math.max(0, rawProgress)}%`;
   const duration = mainAlarm.actualTime;
-  const displayDuration = isPrepareStarted ? duration : mainAlarm.prepareTime;
+  const displayDuration = isDeparturePhase ? duration : mainAlarm.prepareTime;
 
   const isRealtimeSectionVisible = isPrepareStarted;
   return (
@@ -433,10 +437,10 @@ export default function HomePage() {
           <div className="mt-[38px] flex items-end justify-between">
             <div className="flex w-[95px] flex-col items-start">
               <div className="flex items-center gap-[12px]">
-                {(isPrepareStarted || isBluePhase) && (
+                {(isDeparturePhase || isBluePhase) && (
                   <div
                     className={`h-[8px] w-[8px] animate-[pulse_2s_ease-in-out_infinite] rounded-full transition-all duration-1000 ${
-                      isPrepareStarted
+                      isDeparturePhase
                         ? "bg-[#FF7A00] shadow-[0_0_0_4px_rgba(255,122,0,0.18)]"
                         : isBluePhase
                           ? "bg-[#1E7BDB] shadow-[0_0_0_4px_rgba(30,123,219,0.18)]"
@@ -447,7 +451,7 @@ export default function HomePage() {
 
                 <p
                   className={`text-[19px] font-semibold ${
-                    isPrepareStarted
+                    isDeparturePhase
                       ? "text-[#FF7A00]"
                       : isBluePhase
                         ? "text-[#1E7BDB]"
@@ -525,7 +529,6 @@ export default function HomePage() {
                               {segment.startStop ?? "승차 위치"}
                             </span>
                           </div>
-
                         </div>
 
                         <div className="mt-[8px] flex items-center">
@@ -591,7 +594,6 @@ export default function HomePage() {
                         {subwaySegment?.startStation}역
                       </span>
                     </div>
-
                   </div>
 
                   <div className="mt-[10px] text-center">
@@ -732,6 +734,3 @@ export default function HomePage() {
     </div>
   );
 }
-
-
-
