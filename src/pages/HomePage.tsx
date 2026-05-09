@@ -95,6 +95,10 @@ export default function HomePage() {
         ...(detailAlarm ? [detailAlarm] : []),
         ...summaryAlarms,
       ];
+      if (sourceAlarms.length === 0) {
+        navigate("/start");
+        return;
+      }
 
       const alarms = sourceAlarms
         .filter((alarm: Alarm) => new Date(alarm.arrivalTime) > now)
@@ -104,13 +108,18 @@ export default function HomePage() {
             new Date(b.arrivalTime).getTime(),
         );
 
-      if (alarms.length === 0) {
-        navigate("/start");
+      if (alarms.length > 0) {
+        setMainAlarm(alarms[0]);
+        setAlarmList(alarms.slice(1));
         return;
       }
 
-      setMainAlarm(alarms[0]);
-      setAlarmList(alarms.slice(1));
+      const allSortedAlarms = [...sourceAlarms].sort(
+        (a: Alarm, b: Alarm) =>
+          new Date(a.arrivalTime).getTime() - new Date(b.arrivalTime).getTime(),
+      );
+      setMainAlarm(allSortedAlarms[0]);
+      setAlarmList(allSortedAlarms.slice(1));
     } catch (error) {
       console.error("알람 조회 실패", error);
     }
@@ -493,6 +502,11 @@ export default function HomePage() {
               {mainAlarm.title}
             </span>
           </div>
+          {isDeparturePhase && (
+            <p className="mt-[6px] text-[11px] leading-[130%] text-[var(--Gray)]">
+              실시간 교통정보에 따라 최대 20분 정도 늦어질 수 있습니다.
+            </p>
+          )}
 
           <div className="mt-[38px] flex items-end justify-between">
             <div className="flex w-[95px] flex-col items-start">
@@ -553,11 +567,6 @@ export default function HomePage() {
               <p className="text-[15px] font-medium text-[#888]">
                 {rightLabel}
               </p>
-              {isDeparturePhase && (
-                <p className="mt-[2px] text-[11px] leading-[130%] text-[var(--Gray)]">
-                  실시간 교통정보에 따라 최대 20분 정도 늦어질 수 있습니다.
-                </p>
-              )}
 
               <span className="text-[38px] font-light text-[#888]">
                 {rightTime}
