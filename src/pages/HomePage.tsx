@@ -63,6 +63,7 @@ export default function HomePage() {
     data: alarmData,
     isLoading: isAlarmLoading,
     isSuccess: isAlarmSuccess,
+    isFetching: isAlarmFetching,
   } = useGetAlarmList();
 
   function handleOpenModal(alarmId: number) {
@@ -85,7 +86,7 @@ export default function HomePage() {
   };
 
   useEffect(() => {
-    if (isAlarmLoading || !isAlarmSuccess) {
+    if (isAlarmLoading || isAlarmFetching || !isAlarmSuccess) {
       return;
     }
 
@@ -125,7 +126,7 @@ export default function HomePage() {
     );
     setMainAlarm(allSortedAlarms[0]);
     setAlarmList(allSortedAlarms.slice(1));
-  }, [alarmData, navigate, isAlarmLoading, isAlarmSuccess]);
+  }, [alarmData, navigate, isAlarmLoading, isAlarmFetching, isAlarmSuccess]);
 
   const formatTime = (dateTime: string) => {
     const date = new Date(dateTime);
