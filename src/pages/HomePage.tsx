@@ -35,6 +35,7 @@ export default function HomePage() {
   const [currentTime, setCurrentTime] = useState(() => new Date());
   const [isOpen, setIsOpen] = useState(false);
   const [selectedAlarmId, setSelectedAlarmId] = useState<number | null>(null);
+  const [selectedBusIndex, setSelectedBusIndex] = useState(0);
 
   function handleOpenModal(alarmId: number) {
     setSelectedAlarmId(alarmId);
@@ -258,6 +259,9 @@ export default function HomePage() {
   const busSegment = routeSegments.find(
     (segment: any) => segment.trafficType === 2,
   );
+  const busSegments = routeSegments.filter(
+    (segment: any) => segment.trafficType === 2,
+  );
 
   const {
     data: detailRouteData,
@@ -273,10 +277,10 @@ export default function HomePage() {
     arrivalTime: mainAlarm?.arrivalTime,
   });
 
-  const detailBoardingInfo =
-    detailRouteData?.data?.[0]?.segmentBoardingInfos?.find(
+  const busBoardingInfos =
+    detailRouteData?.data?.[0]?.segmentBoardingInfos?.filter(
       (info: any) => info.trafficType === 2,
-    );
+    ) ?? [];
 
   const detailSubwayInfo =
     detailRouteData?.data?.[0]?.segmentBoardingInfos?.find(
@@ -285,11 +289,6 @@ export default function HomePage() {
 
   const firstSubwayDepartureTime =
     detailSubwayInfo?.availableTrains?.[0]?.departureTime;
-
-  const boardingInfo = detailBoardingInfo;
-
-  const firstBus = boardingInfo?.arrivingBuses?.[0];
-  const secondBus = boardingInfo?.arrivingBuses?.[1];
 
   const getBusColorClass = (busType?: number) => {
     const busColorClassMap: Record<number, string> = {
@@ -311,6 +310,20 @@ export default function HomePage() {
   };
 
   const busColorClass = getBusColorClass(busSegment?.busType);
+  const selectedBusInfoCount = Math.min(busSegments.length, busBoardingInfos.length);
+  const safeSelectedBusIndex =
+    selectedBusInfoCount > 0
+      ? Math.min(selectedBusIndex, selectedBusInfoCount - 1)
+      : 0;
+  const selectedBusSegment = busSegments[safeSelectedBusIndex];
+  const selectedBoardingInfo = busBoardingInfos[safeSelectedBusIndex];
+  const firstBus = selectedBoardingInfo?.arrivingBuses?.[0];
+  const secondBus = selectedBoardingInfo?.arrivingBuses?.[1];
+  const selectedBusColorClass = getBusColorClass(selectedBusSegment?.busType);
+
+  useEffect(() => {
+    setSelectedBusIndex(0);
+  }, [mainAlarm?.alarmId]);
 
   if (!mainAlarm) return null;
 
@@ -517,74 +530,85 @@ export default function HomePage() {
             {isRealtimeSectionVisible ? (
               mainAlarm.routeType === "PATH_TYPE_BUS" ? (
                 <div className="flex flex-1 flex-col gap-[16px]">
-                  {routeSegments
-                    .filter((segment: any) => segment.trafficType === 2)
-                    .slice(0, 1)
-                    .map((segment: any, index: number) => (
-                      <div
-                        key={`bus-${index}`}
-                        className="flex flex-1 flex-col"
+                  {selectedBusInfoCount > 1 && (
+                    <div className="flex flex-wrap gap-[8px]">
+                      {busSegments.slice(0, selectedBusInfoCount).map((segment: any, index: number) => (
+                        <button
+                          key={`bus-tab-${index}`}
+                          type="button"
+                          onClick={() => setSelectedBusIndex(index)}
+                          className={`rounded-[6px] px-[8px] py-[4px] text-[13px] font-semibold ${
+                            safeSelectedBusIndex === index
+                              ? `${getBusColorClass(segment.busType)} text-white`
+                              : "bg-[#f1f1f1] text-[#666]"
+                          }`}
+                        >
+                          {segment.busNo ?? segment.busName ?? segment.routeName ?? "버스"}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+
+                  <div className="flex flex-1 flex-col">
+                    <div className="flex items-center gap-[8px]">
+                      <span
+                        className={`flex h-[22px] items-center justify-center rounded-[5px] px-[7px] py-[13px] text-[13px] leading-[13px] font-semibold text-white ${selectedBusColorClass}`}
                       >
-                        <div className="flex items-center gap-[8px]">
-                            <span
-                              className={`flex h-[22px] items-center justify-center rounded-[5px] px-[7px] py-[13px] text-[13px] leading-[13px] font-semibold text-white ${busColorClass}`}
-                            >
-                              {segment.busNo ??
-                                segment.busName ??
-                                segment.routeName ??
-                                "버스"}
-                            </span>
+                        {selectedBusSegment?.busNo ??
+                          selectedBusSegment?.busName ??
+                          selectedBusSegment?.routeName ??
+                          "버스"}
+                      </span>
 
-                            <span className="text-[17px] leading-[17px] font-semibold text-[var(--Neutral)]">
-                              {segment.startStop ?? "승차 위치"}
-                            </span>
-                        </div>
+                      <span className="text-[17px] leading-[17px] font-semibold text-[var(--Neutral)]">
+                        {selectedBusSegment?.startStop ?? "승차 위치"}
+                      </span>
+                    </div>
 
-                        <div className="mt-[8px] flex items-center">
-                          <div className="flex-1 text-center">
-                            <p
-                              className={`mt-[10px] text-[15px] font-semibold ${
-                                displayMinutes <= 30
-                                  ? "text-[#F60707]"
-                                  : "text-[var(--Neutral)]"
-                              }`}
-                            >
-                              {formatBusRemain(firstBus).split("[")[0]}
-                            </p>
+                    <div className="mt-[8px] flex items-center">
+                      <div className="flex-1 text-center">
+                        <p
+                          className={`mt-[10px] text-[15px] font-semibold ${
+                            displayMinutes <= 30
+                              ? "text-[#F60707]"
+                              : "text-[var(--Neutral)]"
+                          }`}
+                        >
+                          {formatBusRemain(firstBus).split("[")[0]}
+                        </p>
 
-                            <p
-                              className={`mt-[4px] text-[13px] font-normal ${
-                                displayMinutes <= 30
-                                  ? "text-[#8F0303]"
-                                  : "text-[var(--Gray)]"
-                              }`}
-                            >
-                              {firstBus?.arrivalMessage?.includes("[")
-                                ? firstBus.arrivalMessage
-                                    .split("[")[1]
-                                    ?.replace("]", "")
-                                : ""}
-                            </p>
-                          </div>
-
-                          <div className="h-[26px] w-[1px] bg-[#e4e4e4]" />
-
-                          <div className="flex-1 text-center">
-                            <p className="mt-[10px] text-[15px] font-semibold text-[var(--Neutral)]">
-                              {formatBusRemain(secondBus).split("[")[0]}
-                            </p>
-
-                            <p className="mt-[4px] text-[13px] font-normal text-[var(--Gray)]">
-                              {secondBus?.arrivalMessage?.includes("[")
-                                ? secondBus.arrivalMessage
-                                    .split("[")[1]
-                                    ?.replace("]", "")
-                                : ""}
-                            </p>
-                          </div>
-                        </div>
+                        <p
+                          className={`mt-[4px] text-[13px] font-normal ${
+                            displayMinutes <= 30
+                              ? "text-[#8F0303]"
+                              : "text-[var(--Gray)]"
+                          }`}
+                        >
+                          {firstBus?.arrivalMessage?.includes("[")
+                            ? firstBus.arrivalMessage
+                                .split("[")[1]
+                                ?.replace("]", "")
+                            : ""}
+                        </p>
                       </div>
-                    ))}
+
+                      <div className="h-[26px] w-[1px] bg-[#e4e4e4]" />
+
+                      <div className="flex-1 text-center">
+                        <p className="mt-[10px] text-[15px] font-semibold text-[var(--Neutral)]">
+                          {formatBusRemain(secondBus).split("[")[0]}
+                        </p>
+
+                        <p className="mt-[4px] text-[13px] font-normal text-[var(--Gray)]">
+                          {secondBus?.arrivalMessage?.includes("[")
+                            ? secondBus.arrivalMessage
+                                .split("[")[1]
+                                ?.replace("]", "")
+                            : ""}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               ) : (
                 <div className="flex flex-1 flex-col">
