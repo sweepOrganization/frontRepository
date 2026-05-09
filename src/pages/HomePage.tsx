@@ -170,11 +170,17 @@ export default function HomePage() {
     }
 
     if (typeof bus.arrivalTimeSeconds === "number") {
-      if (bus.arrivalTimeSeconds <= 0) {
+      const elapsedSeconds =
+        dataUpdatedAt > 0
+          ? Math.floor((currentTime.getTime() - dataUpdatedAt) / 1000)
+          : 0;
+      const liveSeconds = Math.max(0, bus.arrivalTimeSeconds - elapsedSeconds);
+
+      if (liveSeconds <= 0) {
         return "운행정보 없음";
       }
 
-      return formatRemainTime(bus.arrivalTimeSeconds);
+      return formatRemainTime(liveSeconds);
     }
 
     return message || "운행정보 없음";
@@ -253,7 +259,11 @@ export default function HomePage() {
     (segment: any) => segment.trafficType === 2,
   );
 
-  const { data: detailRouteData } = useGetDetailRoute({
+  const {
+    data: detailRouteData,
+    dataUpdatedAt,
+  } =
+    useGetDetailRoute({
     routeId: mainAlarm?.routeId,
     type: mainAlarm?.routeType,
     startX: mainAlarm?.startX,
@@ -515,8 +525,7 @@ export default function HomePage() {
                         key={`bus-${index}`}
                         className="flex flex-1 flex-col"
                       >
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-[8px]">
+                        <div className="flex items-center gap-[8px]">
                             <span
                               className={`flex h-[22px] items-center justify-center rounded-[5px] px-[7px] py-[13px] text-[13px] leading-[13px] font-semibold text-white ${busColorClass}`}
                             >
@@ -529,7 +538,6 @@ export default function HomePage() {
                             <span className="text-[17px] leading-[17px] font-semibold text-[var(--Neutral)]">
                               {segment.startStop ?? "승차 위치"}
                             </span>
-                          </div>
                         </div>
 
                         <div className="mt-[8px] flex items-center">
