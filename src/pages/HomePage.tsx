@@ -22,6 +22,27 @@ type Alarm = {
   endY?: number;
 };
 
+type RouteSegment = {
+  trafficType: number;
+  lineName?: string;
+  busType?: number;
+  busNo?: string;
+  busName?: string;
+  routeName?: string;
+  startStop?: string;
+};
+
+type ArrivingBus = {
+  arrivalMessage?: string;
+  arrivalTimeSeconds?: number;
+};
+
+type SegmentBoardingInfo = {
+  trafficType: number;
+  availableTrains?: Array<{ departureTime?: string }>;
+  arrivingBuses?: ArrivingBus[];
+};
+
 export default function HomePage() {
   const navigate = useNavigate();
   const { mutate: logout } = useLogoutMutation();
@@ -157,7 +178,7 @@ export default function HomePage() {
     return `${min}분 ${sec}초`;
   };
 
-  const formatBusRemain = (bus: any) => {
+  const formatBusRemain = (bus?: ArrivingBus) => {
     if (!bus) return "운행정보 없음";
 
     const message = bus.arrivalMessage ?? "";
@@ -228,7 +249,7 @@ export default function HomePage() {
   const routeSegments = parsedRouteData?.segments?.flat() || [];
 
   const subwaySegment = routeSegments.find(
-    (segment: any) => segment.trafficType === 1,
+    (segment: RouteSegment) => segment.trafficType === 1,
   );
 
   const subwayLineColorMap: Record<string, string> = {
@@ -257,10 +278,10 @@ export default function HomePage() {
   const subwayLineColor = subwayLineColorMap[subwayLineName] ?? "var(--line-2)";
 
   const busSegment = routeSegments.find(
-    (segment: any) => segment.trafficType === 2,
+    (segment: RouteSegment) => segment.trafficType === 2,
   );
   const busSegments = routeSegments.filter(
-    (segment: any) => segment.trafficType === 2,
+    (segment: RouteSegment) => segment.trafficType === 2,
   );
 
   const {
@@ -279,12 +300,12 @@ export default function HomePage() {
 
   const busBoardingInfos =
     detailRouteData?.data?.[0]?.segmentBoardingInfos?.filter(
-      (info: any) => info.trafficType === 2,
-    ) ?? [];
+      (info: SegmentBoardingInfo) => info.trafficType === 2,
+    ) ?? ([] as SegmentBoardingInfo[]);
 
   const detailSubwayInfo =
     detailRouteData?.data?.[0]?.segmentBoardingInfos?.find(
-      (info: any) => info.trafficType === 1,
+      (info: SegmentBoardingInfo) => info.trafficType === 1,
     );
 
   const firstSubwayDepartureTime =
@@ -532,7 +553,7 @@ export default function HomePage() {
                 <div className="flex flex-1 flex-col gap-[16px]">
                   {selectedBusInfoCount > 1 && (
                     <div className="flex flex-wrap gap-[8px]">
-                      {busSegments.slice(0, selectedBusInfoCount).map((segment: any, index: number) => (
+                      {busSegments.slice(0, selectedBusInfoCount).map((segment: RouteSegment, index: number) => (
                         <button
                           key={`bus-tab-${index}`}
                           type="button"
