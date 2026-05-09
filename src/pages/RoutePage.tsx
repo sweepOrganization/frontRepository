@@ -220,9 +220,18 @@ function getBusColorClass(busType?: number) {
     3: "bg-(--bus-green)",
     4: "bg-(--bus-red)",
     5: "bg-(--bus-sky)",
+    6: "bg-[#7B1FA2]",
+    10: "bg-[#607D8B]",
     11: "bg-(--bus-blue)",
     12: "bg-(--bus-green)",
+    13: "bg-[#F9A825]",
     14: "bg-(--bus-red)",
+    15: "bg-[#FF8C00]",
+    16: "bg-[#8E44AD]",
+    20: "bg-[#7CB342]",
+    22: "bg-[#B71C1C]",
+    26: "bg-[#6A1B9A]",
+    30: "bg-[#00A6B4]",
   };
 
   if (typeof busType === "number" && busColorClassMap[busType]) {
@@ -239,9 +248,18 @@ function getBusTextColorStyle(busType?: number) {
     3: "var(--bus-green)",
     4: "var(--bus-red)",
     5: "var(--bus-sky)",
+    6: "#7B1FA2",
+    10: "#607D8B",
     11: "var(--bus-blue)",
     12: "var(--bus-green)",
+    13: "#F9A825",
     14: "var(--bus-red)",
+    15: "#FF8C00",
+    16: "#8E44AD",
+    20: "#7CB342",
+    22: "#B71C1C",
+    26: "#6A1B9A",
+    30: "#00A6B4",
   };
 
   return {

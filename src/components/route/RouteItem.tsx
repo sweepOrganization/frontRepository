@@ -131,9 +131,18 @@ function getBusIconColor(busType?: number) {
     3: "#53B332",
     4: "#E53935",
     5: "#42A5F5",
+    6: "#7B1FA2",
+    10: "#607D8B",
     11: "#0B57D0",
     12: "#53B332",
+    13: "#F9A825",
     14: "#E53935",
+    15: "#FF8C00",
+    16: "#8E44AD",
+    20: "#7CB342",
+    22: "#B71C1C",
+    26: "#6A1B9A",
+    30: "#00A6B4",
   };
 
   if (typeof busType === "number" && busColorMap[busType]) {

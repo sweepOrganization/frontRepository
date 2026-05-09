@@ -71,9 +71,18 @@ function getBusColorClass(busType?: number) {
     3: "bg-(--bus-green)", //마을
     4: "bg-(--bus-red)", //직행좌석
     5: "bg-(--bus-sky)", //공항
+    6: "bg-[#7B1FA2]", //간선급행
+    10: "bg-[#607D8B]", //외곽
     11: "bg-(--bus-blue)", //간선
     12: "bg-(--bus-green)", //지선
+    13: "bg-[#F9A825]", //순환
     14: "bg-(--bus-red)", //광역
+    15: "bg-[#FF8C00]", //급행
+    16: "bg-[#8E44AD]", //관광버스
+    20: "bg-[#7CB342]", //농어촌버스
+    22: "bg-[#B71C1C]", //경기도 시외형버스
+    26: "bg-[#6A1B9A]", //급행간선
+    30: "bg-[#00A6B4]", //한강버스
   };
 
   if (typeof busType === "number" && busColorClassMap[busType]) {
