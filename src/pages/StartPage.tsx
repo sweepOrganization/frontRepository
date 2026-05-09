@@ -12,7 +12,7 @@ export default function StartPage() {
 
     const result = await prepareAlarmEntry();
     if (!result.ok) {
-      setPermissionMessage(result.message);
+      setPermissionMessage(result.message ?? "");
       return;
     }
 
