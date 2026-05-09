@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import DeleteModal from "../components/HomePage/DeleteModal";
 import Duck from "../components/HomePage/Duck";
 import useLogoutMutation from "../hooks/mutations/useLogoutMutation";
+import useGetAlarmList from "../hooks/queries/useGetAlarmList";
 import useGetDetailRoute from "../hooks/queries/useGetDetailRoute";
 
 type Alarm = {
@@ -57,6 +58,7 @@ export default function HomePage() {
   const [isOpen, setIsOpen] = useState(false);
   const [selectedAlarmId, setSelectedAlarmId] = useState<number | null>(null);
   const [selectedBusIndex, setSelectedBusIndex] = useState(0);
+  const { data: alarmData, isLoading: isAlarmLoading } = useGetAlarmList();
 
   function handleOpenModal(alarmId: number) {
     setSelectedAlarmId(alarmId);
@@ -68,66 +70,48 @@ export default function HomePage() {
     setSelectedAlarmId(null);
   }
 
-  const getAlarms = async () => {
-    const token = localStorage.getItem("accessToken");
-
-    if (!token) {
-      navigate("/login");
+  useEffect(() => {
+    if (isAlarmLoading) {
       return;
     }
 
-    try {
-      const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/alarm`, {
-        method: "GET",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+    const now = new Date();
+    const detailAlarm = alarmData?.data?.alarmDetailResponse;
+    const summaryAlarms = Array.isArray(
+      alarmData?.data?.alarmSummaryResponseList,
+    )
+      ? alarmData.data.alarmSummaryResponseList
+      : [];
 
-      const json = await res.json();
-      const now = new Date();
-      const detailAlarm = json?.data?.alarmDetailResponse;
-      const summaryAlarms = Array.isArray(json?.data?.alarmSummaryResponseList)
-        ? json.data.alarmSummaryResponseList
-        : [];
+    const sourceAlarms = [
+      ...(detailAlarm ? [detailAlarm] : []),
+      ...summaryAlarms,
+    ];
+    if (sourceAlarms.length === 0) {
+      navigate("/start");
+      return;
+    }
 
-      const sourceAlarms = [
-        ...(detailAlarm ? [detailAlarm] : []),
-        ...summaryAlarms,
-      ];
-      if (sourceAlarms.length === 0) {
-        navigate("/start");
-        return;
-      }
-
-      const alarms = sourceAlarms
-        .filter((alarm: Alarm) => new Date(alarm.arrivalTime) > now)
-        .sort(
-          (a: Alarm, b: Alarm) =>
-            new Date(a.arrivalTime).getTime() -
-            new Date(b.arrivalTime).getTime(),
-        );
-
-      if (alarms.length > 0) {
-        setMainAlarm(alarms[0]);
-        setAlarmList(alarms.slice(1));
-        return;
-      }
-
-      const allSortedAlarms = [...sourceAlarms].sort(
+    const alarms = sourceAlarms
+      .filter((alarm: Alarm) => new Date(alarm.arrivalTime) > now)
+      .sort(
         (a: Alarm, b: Alarm) =>
           new Date(a.arrivalTime).getTime() - new Date(b.arrivalTime).getTime(),
       );
-      setMainAlarm(allSortedAlarms[0]);
-      setAlarmList(allSortedAlarms.slice(1));
-    } catch (error) {
-      console.error("알람 조회 실패", error);
-    }
-  };
 
-  useEffect(() => {
-    getAlarms();
-  }, [navigate]);
+    if (alarms.length > 0) {
+      setMainAlarm(alarms[0]);
+      setAlarmList(alarms.slice(1));
+      return;
+    }
+
+    const allSortedAlarms = [...sourceAlarms].sort(
+      (a: Alarm, b: Alarm) =>
+        new Date(a.arrivalTime).getTime() - new Date(b.arrivalTime).getTime(),
+    );
+    setMainAlarm(allSortedAlarms[0]);
+    setAlarmList(allSortedAlarms.slice(1));
+  }, [alarmData, navigate, isAlarmLoading]);
 
   const formatTime = (dateTime: string) => {
     const date = new Date(dateTime);
