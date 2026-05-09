@@ -32,7 +32,6 @@ export default function HomePage() {
 
   const [mainAlarm, setMainAlarm] = useState<Alarm | null>(null);
   const [alarmList, setAlarmList] = useState<Alarm[]>([]);
-  const [busFetchedAt, setBusFetchedAt] = useState<number | null>(null);
   const [currentTime, setCurrentTime] = useState(() => new Date());
   const [isOpen, setIsOpen] = useState(false);
   const [selectedAlarmId, setSelectedAlarmId] = useState<number | null>(null);
@@ -171,17 +170,11 @@ export default function HomePage() {
     }
 
     if (typeof bus.arrivalTimeSeconds === "number") {
-      const elapsedSeconds = busFetchedAt
-        ? Math.floor((Date.now() - busFetchedAt) / 1000)
-        : 0;
-
-      const liveSeconds = Math.max(0, bus.arrivalTimeSeconds - elapsedSeconds);
-
-      if (liveSeconds <= 0) {
+      if (bus.arrivalTimeSeconds <= 0) {
         return "운행정보 없음";
       }
 
-      return formatRemainTime(liveSeconds);
+      return formatRemainTime(bus.arrivalTimeSeconds);
     }
 
     return message || "운행정보 없음";
@@ -206,52 +199,6 @@ export default function HomePage() {
 
     return `${min}분 ${sec}초`;
   };
-
-  const fetchBusInfo = async () => {
-    if (!mainAlarm) return;
-    if (mainAlarm.routeType !== "PATH_TYPE_BUS") return;
-
-    const token = localStorage.getItem("accessToken");
-    if (!token) return;
-
-    try {
-      const parsedData = mainAlarm.routeData
-        ? JSON.parse(mainAlarm.routeData)
-        : null;
-
-      const segments = parsedData?.segments?.flat() || [];
-
-      const currentBusSegment = segments.find(
-        (segment: any) => segment.trafficType === 2,
-      );
-
-      const stId = currentBusSegment?.localBusStationId;
-      const busRouteId = currentBusSegment?.busRouteId;
-
-      if (!stId || !busRouteId) return;
-
-      const res = await fetch(
-        `${import.meta.env.VITE_API_BASE_URL}/route/bus/arrival?stId=${stId}&busRouteId=${busRouteId}&ord=0&providerCode=4`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        },
-      );
-
-      const json = await res.json();
-
-      setBusFetchedAt(Date.now());
-    } catch (error) {
-      console.error("실시간 정보 조회 실패", error);
-    }
-  };
-
-  useEffect(() => {
-    if (!mainAlarm) return;
-
-    fetchBusInfo();
-  }, [mainAlarm]);
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -388,7 +335,7 @@ export default function HomePage() {
 
   const displayMinutes = Math.max(
     0,
-    Math.floor((progressEndTime - now) / 60000),
+    Math.ceil((progressEndTime - now) / 60000),
   );
 
   const elapsedSeconds = Math.max(
@@ -579,18 +526,6 @@ export default function HomePage() {
                             </span>
                           </div>
 
-                          <button
-                            type="button"
-                            onClick={() => {
-                              fetchBusInfo();
-                            }}
-                          >
-                            <img
-                              src="/refresh.svg"
-                              alt="새로고침"
-                              className="h-[16px] w-[16px]"
-                            />
-                          </button>
                         </div>
 
                         <div className="mt-[8px] flex items-center">
@@ -657,13 +592,6 @@ export default function HomePage() {
                       </span>
                     </div>
 
-                    <button type="button" onClick={fetchBusInfo}>
-                      <img
-                        src="/refresh.svg"
-                        alt="새로고침"
-                        className="mt-[5px] h-[16px] w-[16px]"
-                      />
-                    </button>
                   </div>
 
                   <div className="mt-[10px] text-center">
