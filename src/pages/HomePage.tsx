@@ -356,7 +356,8 @@ export default function HomePage() {
   const duration = mainAlarm.actualTime;
   const displayDuration = isDeparturePhase ? duration : mainAlarm.prepareTime;
 
-  const isRealtimeSectionVisible = isPrepareStarted;
+  const realtimeInfoStartTime = departureAlarmTime - 60 * 60 * 1000;
+  const isRealtimeSectionVisible = now >= realtimeInfoStartTime;
   return (
     <div className="relative min-h-screen bg-[#FBFBFB] px-4 pt-[53px] pb-[100px]">
       <section className="overflow-hidden rounded-[10px] bg-gradient-to-r from-[#50C864] to-[#80DF7C] px-[10px] pt-[10px] pb-[12px]">
