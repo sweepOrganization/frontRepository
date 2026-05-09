@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+﻿import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import DeleteModal from "../components/HomePage/DeleteModal";
 import Duck from "../components/HomePage/Duck";
@@ -32,7 +32,6 @@ export default function HomePage() {
 
   const [mainAlarm, setMainAlarm] = useState<Alarm | null>(null);
   const [alarmList, setAlarmList] = useState<Alarm[]>([]);
-  const [, setBusInfo] = useState<any>(null);
   const [busFetchedAt, setBusFetchedAt] = useState<number | null>(null);
   const [currentTime, setCurrentTime] = useState(() => new Date());
   const [isOpen, setIsOpen] = useState(false);
@@ -242,7 +241,6 @@ export default function HomePage() {
 
       const json = await res.json();
 
-      setBusInfo(json.data);
       setBusFetchedAt(Date.now());
     } catch (error) {
       console.error("실시간 정보 조회 실패", error);
@@ -404,7 +402,8 @@ export default function HomePage() {
   );
 
   const progressPercent = `${Math.max(0, rawProgress)}%`;
-  const duration = mainAlarm.actualTime ?? mainAlarm.totalTime ?? 0;
+  const duration = mainAlarm.actualTime;
+  const displayDuration = isPrepareStarted ? duration : mainAlarm.prepareTime;
 
   const isRealtimeSectionVisible = isPrepareStarted;
   return (
@@ -522,10 +521,10 @@ export default function HomePage() {
 
               <div className="flex flex-col items-center">
                 <span className="text-[12px] text-[#777]">
-                  {duration
-                    ? duration >= 60
-                      ? `${Math.floor(duration / 60)}시간 ${duration % 60}분`
-                      : `${duration}분`
+                  {displayDuration !== undefined && displayDuration !== null
+                    ? displayDuration >= 60
+                      ? `${Math.floor(displayDuration / 60)}시간 ${displayDuration % 60}분`
+                      : `${displayDuration}분`
                     : ""}
                 </span>
 
@@ -805,3 +804,6 @@ export default function HomePage() {
     </div>
   );
 }
+
+
+
