@@ -358,7 +358,6 @@ export default function HomePage() {
   const secondBus = selectedBoardingInfo?.arrivingBuses?.[1];
   const hasBusRateLimitError =
     isBusRateLimited(firstBus) || isBusRateLimited(secondBus);
-  const selectedBusColorClass = getBusColorClass(selectedBusSegment?.busType);
 
   useEffect(() => {
     setSelectedBusIndex(0);
@@ -595,15 +594,6 @@ export default function HomePage() {
 
                   <div className="flex flex-1 flex-col">
                     <div className="flex items-center gap-[8px]">
-                      <span
-                        className={`flex h-[22px] items-center justify-center rounded-[5px] px-[7px] py-[13px] text-[13px] leading-[13px] font-semibold text-white ${selectedBusColorClass}`}
-                      >
-                        {selectedBusSegment?.busNo ??
-                          selectedBusSegment?.busName ??
-                          selectedBusSegment?.routeName ??
-                          "버스"}
-                      </span>
-
                       <span className="text-[17px] leading-[17px] font-semibold text-[var(--Neutral)]">
                         {selectedBusSegment?.startStop ?? "승차 위치"}
                       </span>
