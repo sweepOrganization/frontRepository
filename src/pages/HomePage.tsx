@@ -553,6 +553,11 @@ export default function HomePage() {
               <p className="text-[15px] font-medium text-[#888]">
                 {rightLabel}
               </p>
+              {isDeparturePhase && (
+                <p className="mt-[2px] text-[11px] leading-[130%] text-[var(--Gray)]">
+                  실시간 교통정보에 따라 최대 20분 정도 늦어질 수 있습니다.
+                </p>
+              )}
 
               <span className="text-[38px] font-light text-[#888]">
                 {rightTime}
@@ -566,11 +571,10 @@ export default function HomePage() {
             {isRealtimeSectionVisible ? (
               mainAlarm.routeType === "PATH_TYPE_BUS" ? (
                 <div className="flex flex-1 flex-col gap-[16px]">
-                  {selectedBusInfoCount > 1 && (
+                  {busSegments.length > 1 && (
                     <div className="flex flex-wrap gap-[8px]">
-                      {busSegments
-                        .slice(0, selectedBusInfoCount)
-                        .map((segment: RouteSegment, index: number) => (
+                      {busSegments.map(
+                        (segment: RouteSegment, index: number) => (
                           <button
                             key={`bus-tab-${index}`}
                             type="button"
@@ -586,7 +590,23 @@ export default function HomePage() {
                               segment.routeName ??
                               "버스"}
                           </button>
-                        ))}
+                        ),
+                      )}
+                    </div>
+                  )}
+
+                  {busSegments.length === 1 && (
+                    <div className="flex">
+                      <span
+                        className={`rounded-[6px] px-[8px] py-[4px] text-[13px] font-semibold text-white ${getBusColorClass(
+                          busSegments[0]?.busType,
+                        )}`}
+                      >
+                        {busSegments[0]?.busNo ??
+                          busSegments[0]?.busName ??
+                          busSegments[0]?.routeName ??
+                          "버스"}
+                      </span>
                     </div>
                   )}
 
