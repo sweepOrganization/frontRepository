@@ -26,17 +26,65 @@ export default function NotificationSetting4Page() {
     const parsed = Number.parseInt(value, 10);
     return Number.isNaN(parsed) ? 0 : parsed;
   };
+  const prepareMinutes = toNumber(hour) * 60 + toNumber(minute);
 
   const handleHourChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const nextHour = event.target.value;
+    const nextHour = event.target.value.replace(/\D/g, "");
+    const nextPrepareMinutes = toNumber(nextHour) * 60 + toNumber(minute);
     setHour(nextHour);
-    setPrepareTime(toNumber(nextHour) * 60 + toNumber(minute));
+    setPrepareTime(nextPrepareMinutes);
+    if (
+      selectedReminderMinutes !== null &&
+      selectedReminderMinutes > nextPrepareMinutes
+    ) {
+      setSelectedReminderMinutes(null);
+      setInterval(0);
+    }
   };
 
   const handleMinuteChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const nextMinute = event.target.value;
+    const nextMinute = event.target.value.replace(/\D/g, "");
+    const nextPrepareMinutes = toNumber(hour) * 60 + toNumber(nextMinute);
     setMinute(nextMinute);
-    setPrepareTime(toNumber(hour) * 60 + toNumber(nextMinute));
+    setPrepareTime(nextPrepareMinutes);
+    if (
+      selectedReminderMinutes !== null &&
+      selectedReminderMinutes > nextPrepareMinutes
+    ) {
+      setSelectedReminderMinutes(null);
+      setInterval(0);
+    }
+  };
+
+  const allowOnlyDigitsKeyDown = (
+    event: React.KeyboardEvent<HTMLInputElement>,
+  ) => {
+    const isDigit = /^[0-9]$/.test(event.key);
+    const allowedKeys = new Set([
+      "Backspace",
+      "Delete",
+      "ArrowLeft",
+      "ArrowRight",
+      "Tab",
+      "Home",
+      "End",
+    ]);
+    const isShortcut =
+      (event.ctrlKey || event.metaKey) &&
+      ["a", "c", "v", "x"].includes(event.key.toLowerCase());
+
+    if (!isDigit && !allowedKeys.has(event.key) && !isShortcut) {
+      event.preventDefault();
+    }
+  };
+
+  const allowOnlyDigitsPaste = (
+    event: React.ClipboardEvent<HTMLInputElement>,
+  ) => {
+    const text = event.clipboardData.getData("text");
+    if (!/^\d+$/.test(text)) {
+      event.preventDefault();
+    }
   };
 
   const handleChecklistChange = (
@@ -50,6 +98,9 @@ export default function NotificationSetting4Page() {
   };
 
   const handleReminderClick = (value: number) => {
+    if (value > prepareMinutes) {
+      return;
+    }
     setSelectedReminderMinutes(value);
     setInterval(value);
   };
@@ -60,12 +111,12 @@ export default function NotificationSetting4Page() {
 
   return (
     <div className="flex h-screen flex-col">
-      <div className="mx-4 mt-[14px] flex flex-1 flex-col overflow-y-auto pb-6 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+      <div className="mx-4 mt-[14px] flex flex-1 flex-col overflow-y-auto pb-6">
         <div className="mb-[45px] flex h-16 flex-col gap-[4px]">
-          <span className="text-[23px] leading-[34px] font-semibold">
+          <span className="text-[23px] leading-[34px] font-bold">
             준비는 얼마나 걸리나요?
           </span>
-          <span className="text-[17px] leading-[24px] text-(--Lightgray)">
+          <span className="text-[17px] leading-[24px] text-(--DarkGray)">
             준비에 소요되는 시간을 입력해주세요
           </span>
         </div>
@@ -84,6 +135,11 @@ export default function NotificationSetting4Page() {
                   onFocus={() => setIsHourFocused(true)}
                   onBlur={() => setIsHourFocused(false)}
                   onChange={handleHourChange}
+                  onKeyDown={allowOnlyDigitsKeyDown}
+                  onPaste={allowOnlyDigitsPaste}
+                  onDrop={(event) => event.preventDefault()}
+                  inputMode="numeric"
+                  pattern="[0-9]*"
                   placeholder="숫자입력"
                   className="h-11 min-w-0 flex-1 rounded-[8px] border border-(--GreenLightActive) text-center text-(--GreenNormalActive) focus:border-(--Green) focus:outline-none"
                 />
@@ -103,6 +159,11 @@ export default function NotificationSetting4Page() {
                   onFocus={() => setIsMinuteFocused(true)}
                   onBlur={() => setIsMinuteFocused(false)}
                   onChange={handleMinuteChange}
+                  onKeyDown={allowOnlyDigitsKeyDown}
+                  onPaste={allowOnlyDigitsPaste}
+                  onDrop={(event) => event.preventDefault()}
+                  inputMode="numeric"
+                  pattern="[0-9]*"
                   placeholder="숫자입력"
                   className="h-11 min-w-0 flex-1 rounded-[8px] border border-(--GreenLightActive) text-center text-(--GreenNormalActive) focus:border-(--Green) focus:outline-none"
                 />
@@ -129,10 +190,13 @@ export default function NotificationSetting4Page() {
                   key={value}
                   type="button"
                   onClick={() => handleReminderClick(value)}
+                  disabled={value > prepareMinutes}
                   className={`flex-1 rounded-[8px] border px-[10px] py-[10px] ${
                     selectedReminderMinutes === value
                       ? "border-(--GreenNormal) bg-(--GreenNormal) text-(--White)"
-                      : "border-(--GreenLightActive)"
+                      : value > prepareMinutes
+                        ? "cursor-not-allowed border-(--GreenLightActive) bg-[#f4f4f4] text-[#c6c6c6]"
+                        : "border-(--GreenLightActive)"
                   }`}
                 >
                   {value}분

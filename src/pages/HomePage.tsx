@@ -59,7 +59,12 @@ export default function HomePage() {
   const [selectedAlarmId, setSelectedAlarmId] = useState<number | null>(null);
   const [selectedBusIndex, setSelectedBusIndex] = useState(0);
   const { isCheckingPermission, prepareAlarmEntry } = useAlarmEntryPermission();
-  const { data: alarmData, isLoading: isAlarmLoading } = useGetAlarmList();
+  const {
+    data: alarmData,
+    isLoading: isAlarmLoading,
+    isSuccess: isAlarmSuccess,
+    isFetching: isAlarmFetching,
+  } = useGetAlarmList();
 
   function handleOpenModal(alarmId: number) {
     setSelectedAlarmId(alarmId);
@@ -81,7 +86,7 @@ export default function HomePage() {
   };
 
   useEffect(() => {
-    if (isAlarmLoading) {
+    if (isAlarmLoading || isAlarmFetching || !isAlarmSuccess) {
       return;
     }
 
@@ -121,7 +126,7 @@ export default function HomePage() {
     );
     setMainAlarm(allSortedAlarms[0]);
     setAlarmList(allSortedAlarms.slice(1));
-  }, [alarmData, navigate, isAlarmLoading]);
+  }, [alarmData, navigate, isAlarmLoading, isAlarmFetching, isAlarmSuccess]);
 
   const formatTime = (dateTime: string) => {
     const date = new Date(dateTime);
