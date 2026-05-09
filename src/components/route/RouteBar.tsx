@@ -23,7 +23,22 @@ function getSubwayColorClass(subwayCode?: number, lineName?: string) {
     7: "bg-(--line-7)",
     8: "bg-(--line-8)",
     9: "bg-(--line-9)",
+    21: "bg-(--line-incheon-1)",
+    22: "bg-(--line-incheon-2)",
+    91: "bg-(--line-gtx-a)",
+    101: "bg-(--line-airport)",
+    102: "bg-(--line-airport)",
+    104: "bg-(--line-gyeongui)",
+    107: "bg-(--line-ever)",
+    108: "bg-(--line-gyeongchun)",
+    109: "bg-(--line-sinbundang)",
+    110: "bg-(--line-uijeongbu)",
+    112: "bg-(--line-gyeonggang)",
+    113: "bg-(--line-ui-sinseol)",
     114: "bg-(--line-seohae)",
+    115: "bg-(--line-gimpo-gold)",
+    116: "bg-(--line-su-in-bundang)",
+    117: "bg-(--line-sillim)",
   };
 
   if (subwayCode && subwayColorClassMap[subwayCode]) {

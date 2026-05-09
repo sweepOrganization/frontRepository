@@ -80,6 +80,23 @@ function getDeduplicatedSegments(segments: Segment[]) {
 
 function getSubwayIconColor(transportId?: string) {
   if (!transportId) return "#8a8f98";
+  if (transportId.includes("GTX-A")) return "#905A89";
+  if (transportId.includes("공항")) return "#73B6E4";
+  if (transportId.includes("자기부상")) return "#73B6E4";
+  if (transportId.includes("경의중앙")) return "#76BC9E";
+  if (transportId.includes("에버")) return "#77C371";
+  if (transportId.includes("경춘")) return "#08AF7B";
+  if (transportId.includes("신분당")) return "#A71E31";
+  if (transportId.includes("의정부")) return "#FF9D27";
+  if (transportId.includes("경강")) return "#2673F2";
+  if (transportId.includes("우이")) return "#C6C100";
+  if (transportId.includes("서해")) return "#8BC53F";
+  if (transportId.includes("김포")) return "#96710A";
+  if (transportId.includes("수인") || transportId.includes("분당"))
+    return "#EBA900";
+  if (transportId.includes("신림")) return "#4E67A5";
+  if (transportId.includes("인천 1")) return "#6F99D0";
+  if (transportId.includes("인천 2")) return "#F4AB3E";
   if (transportId.includes("1")) return "#0052A4";
   if (transportId.includes("2")) return "#00A84D";
   if (transportId.includes("3")) return "#EF7C1C";
@@ -88,7 +105,7 @@ function getSubwayIconColor(transportId?: string) {
   if (transportId.includes("6")) return "#CD7C2F";
   if (transportId.includes("7")) return "#747F00";
   if (transportId.includes("8")) return "#E6186C";
-  if (transportId.includes("9")) return "#BB8336";
+  if (transportId.includes("9")) return "#D1A62C";
   return "#8a8f98";
 }
 
@@ -213,7 +230,9 @@ export default function RouteItem({
       <div className="text-[12px] text-(--Gray)">
         {formatKoreanTime(recommendedDepartureTime)} -{" "}
         {formatKoreanTime(arrivalTime)}
-        {typeof payment === "number" ? ` | ${payment.toLocaleString("ko-KR")}원` : ""}
+        {typeof payment === "number"
+          ? ` | ${payment.toLocaleString("ko-KR")}원`
+          : ""}
       </div>
       <RouteBar segments={deduplicatedSegments} />
       <div className="mt-5">
