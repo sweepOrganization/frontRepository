@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import DeleteModal from "../components/HomePage/DeleteModal";
 import Duck from "../components/HomePage/Duck";
 import useLogoutMutation from "../hooks/mutations/useLogoutMutation";
+import useAlarmEntryPermission from "../hooks/useAlarmEntryPermission";
 import useGetAlarmList from "../hooks/queries/useGetAlarmList";
 import useGetDetailRoute from "../hooks/queries/useGetDetailRoute";
 
@@ -43,7 +44,6 @@ type SegmentBoardingInfo = {
   availableTrains?: Array<{ departureTime?: string }>;
   arrivingBuses?: ArrivingBus[];
 };
-
 export default function HomePage() {
   const navigate = useNavigate();
   const { mutate: logout } = useLogoutMutation();
@@ -58,6 +58,7 @@ export default function HomePage() {
   const [isOpen, setIsOpen] = useState(false);
   const [selectedAlarmId, setSelectedAlarmId] = useState<number | null>(null);
   const [selectedBusIndex, setSelectedBusIndex] = useState(0);
+  const { isCheckingPermission, prepareAlarmEntry } = useAlarmEntryPermission();
   const { data: alarmData, isLoading: isAlarmLoading } = useGetAlarmList();
 
   function handleOpenModal(alarmId: number) {
@@ -69,6 +70,15 @@ export default function HomePage() {
     setIsOpen(false);
     setSelectedAlarmId(null);
   }
+
+  const handleCreateAlarm = async () => {
+    const result = await prepareAlarmEntry();
+    if (!result.ok) {
+      alert(result.message);
+      return;
+    }
+    navigate("/notification-setting-1");
+  };
 
   useEffect(() => {
     if (isAlarmLoading) {
@@ -791,7 +801,8 @@ export default function HomePage() {
 
       <button
         type="button"
-        onClick={() => navigate("/notification-setting-1")}
+        onClick={handleCreateAlarm}
+        disabled={isCheckingPermission}
         className="fixed right-[29px] bottom-[25px] flex h-[60px] w-[60px] items-center justify-center rounded-full bg-[var(--GreenNormal)] shadow-lg"
       >
         <div className="relative h-[26px] w-[26px]">
