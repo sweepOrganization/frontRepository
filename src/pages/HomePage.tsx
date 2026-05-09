@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+﻿import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import DeleteModal from "../components/HomePage/DeleteModal";
 import Duck from "../components/HomePage/Duck";
@@ -22,6 +22,27 @@ type Alarm = {
   endY?: number;
 };
 
+type RouteSegment = {
+  trafficType: number;
+  lineName?: string;
+  busType?: number;
+  busNo?: string;
+  busName?: string;
+  routeName?: string;
+  startStop?: string;
+};
+
+type ArrivingBus = {
+  arrivalMessage?: string;
+  arrivalTimeSeconds?: number;
+};
+
+type SegmentBoardingInfo = {
+  trafficType: number;
+  availableTrains?: Array<{ departureTime?: string }>;
+  arrivingBuses?: ArrivingBus[];
+};
+
 export default function HomePage() {
   const navigate = useNavigate();
   const { mutate: logout } = useLogoutMutation();
@@ -32,11 +53,10 @@ export default function HomePage() {
 
   const [mainAlarm, setMainAlarm] = useState<Alarm | null>(null);
   const [alarmList, setAlarmList] = useState<Alarm[]>([]);
-  const [, setBusInfo] = useState<any>(null);
-  const [busFetchedAt, setBusFetchedAt] = useState<number | null>(null);
   const [currentTime, setCurrentTime] = useState(() => new Date());
   const [isOpen, setIsOpen] = useState(false);
   const [selectedAlarmId, setSelectedAlarmId] = useState<number | null>(null);
+  const [selectedBusIndex, setSelectedBusIndex] = useState(0);
 
   function handleOpenModal(alarmId: number) {
     setSelectedAlarmId(alarmId);
@@ -158,7 +178,7 @@ export default function HomePage() {
     return `${min}분 ${sec}초`;
   };
 
-  const formatBusRemain = (bus: any) => {
+  const formatBusRemain = (bus?: ArrivingBus) => {
     if (!bus) return "운행정보 없음";
 
     const message = bus.arrivalMessage ?? "";
@@ -172,10 +192,10 @@ export default function HomePage() {
     }
 
     if (typeof bus.arrivalTimeSeconds === "number") {
-      const elapsedSeconds = busFetchedAt
-        ? Math.floor((Date.now() - busFetchedAt) / 1000)
-        : 0;
-
+      const elapsedSeconds =
+        dataUpdatedAt > 0
+          ? Math.floor((currentTime.getTime() - dataUpdatedAt) / 1000)
+          : 0;
       const liveSeconds = Math.max(0, bus.arrivalTimeSeconds - elapsedSeconds);
 
       if (liveSeconds <= 0) {
@@ -208,53 +228,6 @@ export default function HomePage() {
     return `${min}분 ${sec}초`;
   };
 
-  const fetchBusInfo = async () => {
-    if (!mainAlarm) return;
-    if (mainAlarm.routeType !== "PATH_TYPE_BUS") return;
-
-    const token = localStorage.getItem("accessToken");
-    if (!token) return;
-
-    try {
-      const parsedData = mainAlarm.routeData
-        ? JSON.parse(mainAlarm.routeData)
-        : null;
-
-      const segments = parsedData?.segments?.flat() || [];
-
-      const currentBusSegment = segments.find(
-        (segment: any) => segment.trafficType === 2,
-      );
-
-      const stId = currentBusSegment?.localBusStationId;
-      const busRouteId = currentBusSegment?.busRouteId;
-
-      if (!stId || !busRouteId) return;
-
-      const res = await fetch(
-        `${import.meta.env.VITE_API_BASE_URL}/route/bus/arrival?stId=${stId}&busRouteId=${busRouteId}&ord=0&providerCode=4`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        },
-      );
-
-      const json = await res.json();
-
-      setBusInfo(json.data);
-      setBusFetchedAt(Date.now());
-    } catch (error) {
-      console.error("실시간 정보 조회 실패", error);
-    }
-  };
-
-  useEffect(() => {
-    if (!mainAlarm) return;
-
-    fetchBusInfo();
-  }, [mainAlarm]);
-
   useEffect(() => {
     const timer = setInterval(() => {
       setCurrentTime((prev) => new Date(prev.getTime() + 1000));
@@ -276,7 +249,7 @@ export default function HomePage() {
   const routeSegments = parsedRouteData?.segments?.flat() || [];
 
   const subwaySegment = routeSegments.find(
-    (segment: any) => segment.trafficType === 1,
+    (segment: RouteSegment) => segment.trafficType === 1,
   );
 
   const subwayLineColorMap: Record<string, string> = {
@@ -305,10 +278,17 @@ export default function HomePage() {
   const subwayLineColor = subwayLineColorMap[subwayLineName] ?? "var(--line-2)";
 
   const busSegment = routeSegments.find(
-    (segment: any) => segment.trafficType === 2,
+    (segment: RouteSegment) => segment.trafficType === 2,
+  );
+  const busSegments = routeSegments.filter(
+    (segment: RouteSegment) => segment.trafficType === 2,
   );
 
-  const { data: detailRouteData } = useGetDetailRoute({
+  const {
+    data: detailRouteData,
+    dataUpdatedAt,
+  } =
+    useGetDetailRoute({
     routeId: mainAlarm?.routeId,
     type: mainAlarm?.routeType,
     startX: mainAlarm?.startX,
@@ -318,23 +298,18 @@ export default function HomePage() {
     arrivalTime: mainAlarm?.arrivalTime,
   });
 
-  const detailBoardingInfo =
-    detailRouteData?.data?.[0]?.segmentBoardingInfos?.find(
-      (info: any) => info.trafficType === 2,
-    );
+  const busBoardingInfos =
+    detailRouteData?.data?.[0]?.segmentBoardingInfos?.filter(
+      (info: SegmentBoardingInfo) => info.trafficType === 2,
+    ) ?? ([] as SegmentBoardingInfo[]);
 
   const detailSubwayInfo =
     detailRouteData?.data?.[0]?.segmentBoardingInfos?.find(
-      (info: any) => info.trafficType === 1,
+      (info: SegmentBoardingInfo) => info.trafficType === 1,
     );
 
   const firstSubwayDepartureTime =
     detailSubwayInfo?.availableTrains?.[0]?.departureTime;
-
-  const boardingInfo = detailBoardingInfo;
-
-  const firstBus = boardingInfo?.arrivingBuses?.[0];
-  const secondBus = boardingInfo?.arrivingBuses?.[1];
 
   const getBusColorClass = (busType?: number) => {
     const busColorClassMap: Record<number, string> = {
@@ -356,27 +331,45 @@ export default function HomePage() {
   };
 
   const busColorClass = getBusColorClass(busSegment?.busType);
+  const selectedBusInfoCount = Math.min(busSegments.length, busBoardingInfos.length);
+  const safeSelectedBusIndex =
+    selectedBusInfoCount > 0
+      ? Math.min(selectedBusIndex, selectedBusInfoCount - 1)
+      : 0;
+  const selectedBusSegment = busSegments[safeSelectedBusIndex];
+  const selectedBoardingInfo = busBoardingInfos[safeSelectedBusIndex];
+  const firstBus = selectedBoardingInfo?.arrivingBuses?.[0];
+  const secondBus = selectedBoardingInfo?.arrivingBuses?.[1];
+  const selectedBusColorClass = getBusColorClass(selectedBusSegment?.busType);
+
+  useEffect(() => {
+    setSelectedBusIndex(0);
+  }, [mainAlarm?.alarmId]);
 
   if (!mainAlarm) return null;
 
   const now = currentTime.getTime();
 
   const prepareStartTime = new Date(mainAlarm.startTime).getTime();
+  const departureAlarmTime =
+    prepareStartTime + (mainAlarm.prepareTime ?? 0) * 60 * 1000;
 
   const isPrepareStarted = now >= prepareStartTime;
+  const isBeforePrepareStart = now < prepareStartTime;
+  const isBeforeDepartureAlarm = now < departureAlarmTime;
+  const isDeparturePhase = !isBeforeDepartureAlarm;
 
-  const isBluePhase =
-    !isPrepareStarted && prepareStartTime - now <= 10 * 60 * 1000;
+  const isBluePhase = !isBeforePrepareStart && isBeforeDepartureAlarm;
 
-  const leftLabel = isPrepareStarted ? "출발" : "준비 시작";
+  const leftLabel = isDeparturePhase ? "출발" : "준비 시작";
 
-  const leftTime = isPrepareStarted
+  const leftTime = isDeparturePhase
     ? getDepartureTime(mainAlarm.startTime, mainAlarm.prepareTime)
     : formatTime(mainAlarm.startTime);
 
-  const rightLabel = isPrepareStarted ? "도착 예정" : "출발 알람";
+  const rightLabel = isDeparturePhase ? "도착 예정" : "출발 알람";
 
-  const rightTime = isPrepareStarted
+  const rightTime = isDeparturePhase
     ? getExpectedArrivalTime(
         mainAlarm.startTime,
         mainAlarm.prepareTime,
@@ -390,7 +383,7 @@ export default function HomePage() {
 
   const displayMinutes = Math.max(
     0,
-    Math.floor((progressEndTime - now) / 60000),
+    Math.ceil((progressEndTime - now) / 60000),
   );
 
   const elapsedSeconds = Math.max(
@@ -404,9 +397,11 @@ export default function HomePage() {
   );
 
   const progressPercent = `${Math.max(0, rawProgress)}%`;
-  const duration = mainAlarm.actualTime ?? mainAlarm.totalTime ?? 0;
+  const duration = mainAlarm.actualTime;
+  const displayDuration = isDeparturePhase ? duration : mainAlarm.prepareTime;
 
-  const isRealtimeSectionVisible = isPrepareStarted;
+  const realtimeInfoStartTime = departureAlarmTime - 60 * 60 * 1000;
+  const isRealtimeSectionVisible = now >= realtimeInfoStartTime;
   return (
     <div className="relative min-h-screen bg-[#FBFBFB] px-4 pt-[53px] pb-[100px]">
       <section className="overflow-hidden rounded-[10px] bg-gradient-to-r from-[#50C864] to-[#80DF7C] px-[10px] pt-[10px] pb-[12px]">
@@ -487,10 +482,10 @@ export default function HomePage() {
           <div className="mt-[38px] flex items-end justify-between">
             <div className="flex w-[95px] flex-col items-start">
               <div className="flex items-center gap-[12px]">
-                {(isPrepareStarted || isBluePhase) && (
+                {(isDeparturePhase || isBluePhase) && (
                   <div
                     className={`h-[8px] w-[8px] animate-[pulse_2s_ease-in-out_infinite] rounded-full transition-all duration-1000 ${
-                      isPrepareStarted
+                      isDeparturePhase
                         ? "bg-[#FF7A00] shadow-[0_0_0_4px_rgba(255,122,0,0.18)]"
                         : isBluePhase
                           ? "bg-[#1E7BDB] shadow-[0_0_0_4px_rgba(30,123,219,0.18)]"
@@ -501,7 +496,7 @@ export default function HomePage() {
 
                 <p
                   className={`text-[19px] font-semibold ${
-                    isPrepareStarted
+                    isDeparturePhase
                       ? "text-[#FF7A00]"
                       : isBluePhase
                         ? "text-[#1E7BDB]"
@@ -522,10 +517,10 @@ export default function HomePage() {
 
               <div className="flex flex-col items-center">
                 <span className="text-[12px] text-[#777]">
-                  {duration
-                    ? duration >= 60
-                      ? `${Math.floor(duration / 60)}시간 ${duration % 60}분`
-                      : `${duration}분`
+                  {displayDuration !== undefined && displayDuration !== null
+                    ? displayDuration >= 60
+                      ? `${Math.floor(displayDuration / 60)}시간 ${displayDuration % 60}분`
+                      : `${displayDuration}분`
                     : ""}
                 </span>
 
@@ -556,89 +551,85 @@ export default function HomePage() {
             {isRealtimeSectionVisible ? (
               mainAlarm.routeType === "PATH_TYPE_BUS" ? (
                 <div className="flex flex-1 flex-col gap-[16px]">
-                  {routeSegments
-                    .filter((segment: any) => segment.trafficType === 2)
-                    .slice(0, 1)
-                    .map((segment: any, index: number) => (
-                      <div
-                        key={`bus-${index}`}
-                        className="flex flex-1 flex-col"
+                  {selectedBusInfoCount > 1 && (
+                    <div className="flex flex-wrap gap-[8px]">
+                      {busSegments.slice(0, selectedBusInfoCount).map((segment: RouteSegment, index: number) => (
+                        <button
+                          key={`bus-tab-${index}`}
+                          type="button"
+                          onClick={() => setSelectedBusIndex(index)}
+                          className={`rounded-[6px] px-[8px] py-[4px] text-[13px] font-semibold ${
+                            safeSelectedBusIndex === index
+                              ? `${getBusColorClass(segment.busType)} text-white`
+                              : "bg-[#f1f1f1] text-[#666]"
+                          }`}
+                        >
+                          {segment.busNo ?? segment.busName ?? segment.routeName ?? "버스"}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+
+                  <div className="flex flex-1 flex-col">
+                    <div className="flex items-center gap-[8px]">
+                      <span
+                        className={`flex h-[22px] items-center justify-center rounded-[5px] px-[7px] py-[13px] text-[13px] leading-[13px] font-semibold text-white ${selectedBusColorClass}`}
                       >
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-[8px]">
-                            <span
-                              className={`flex h-[22px] items-center justify-center rounded-[5px] px-[7px] py-[13px] text-[13px] leading-[13px] font-semibold text-white ${busColorClass}`}
-                            >
-                              {segment.busNo ??
-                                segment.busName ??
-                                segment.routeName ??
-                                "버스"}
-                            </span>
+                        {selectedBusSegment?.busNo ??
+                          selectedBusSegment?.busName ??
+                          selectedBusSegment?.routeName ??
+                          "버스"}
+                      </span>
 
-                            <span className="text-[17px] leading-[17px] font-semibold text-[var(--Neutral)]">
-                              {segment.startStop ?? "승차 위치"}
-                            </span>
-                          </div>
+                      <span className="text-[17px] leading-[17px] font-semibold text-[var(--Neutral)]">
+                        {selectedBusSegment?.startStop ?? "승차 위치"}
+                      </span>
+                    </div>
 
-                          <button
-                            type="button"
-                            onClick={() => {
-                              fetchBusInfo();
-                            }}
-                          >
-                            <img
-                              src="/refresh.svg"
-                              alt="새로고침"
-                              className="h-[16px] w-[16px]"
-                            />
-                          </button>
-                        </div>
+                    <div className="mt-[8px] flex items-center">
+                      <div className="flex-1 text-center">
+                        <p
+                          className={`mt-[10px] text-[15px] font-semibold ${
+                            displayMinutes <= 30
+                              ? "text-[#F60707]"
+                              : "text-[var(--Neutral)]"
+                          }`}
+                        >
+                          {formatBusRemain(firstBus).split("[")[0]}
+                        </p>
 
-                        <div className="mt-[8px] flex items-center">
-                          <div className="flex-1 text-center">
-                            <p
-                              className={`mt-[10px] text-[15px] font-semibold ${
-                                displayMinutes <= 30
-                                  ? "text-[#F60707]"
-                                  : "text-[var(--Neutral)]"
-                              }`}
-                            >
-                              {formatBusRemain(firstBus).split("[")[0]}
-                            </p>
-
-                            <p
-                              className={`mt-[4px] text-[13px] font-normal ${
-                                displayMinutes <= 30
-                                  ? "text-[#8F0303]"
-                                  : "text-[var(--Gray)]"
-                              }`}
-                            >
-                              {firstBus?.arrivalMessage?.includes("[")
-                                ? firstBus.arrivalMessage
-                                    .split("[")[1]
-                                    ?.replace("]", "")
-                                : ""}
-                            </p>
-                          </div>
-
-                          <div className="h-[26px] w-[1px] bg-[#e4e4e4]" />
-
-                          <div className="flex-1 text-center">
-                            <p className="mt-[10px] text-[15px] font-semibold text-[var(--Neutral)]">
-                              {formatBusRemain(secondBus).split("[")[0]}
-                            </p>
-
-                            <p className="mt-[4px] text-[13px] font-normal text-[var(--Gray)]">
-                              {secondBus?.arrivalMessage?.includes("[")
-                                ? secondBus.arrivalMessage
-                                    .split("[")[1]
-                                    ?.replace("]", "")
-                                : ""}
-                            </p>
-                          </div>
-                        </div>
+                        <p
+                          className={`mt-[4px] text-[13px] font-normal ${
+                            displayMinutes <= 30
+                              ? "text-[#8F0303]"
+                              : "text-[var(--Gray)]"
+                          }`}
+                        >
+                          {firstBus?.arrivalMessage?.includes("[")
+                            ? firstBus.arrivalMessage
+                                .split("[")[1]
+                                ?.replace("]", "")
+                            : ""}
+                        </p>
                       </div>
-                    ))}
+
+                      <div className="h-[26px] w-[1px] bg-[#e4e4e4]" />
+
+                      <div className="flex-1 text-center">
+                        <p className="mt-[10px] text-[15px] font-semibold text-[var(--Neutral)]">
+                          {formatBusRemain(secondBus).split("[")[0]}
+                        </p>
+
+                        <p className="mt-[4px] text-[13px] font-normal text-[var(--Gray)]">
+                          {secondBus?.arrivalMessage?.includes("[")
+                            ? secondBus.arrivalMessage
+                                .split("[")[1]
+                                ?.replace("]", "")
+                            : ""}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               ) : (
                 <div className="flex flex-1 flex-col">
@@ -657,14 +648,6 @@ export default function HomePage() {
                         {subwaySegment?.startStation}역
                       </span>
                     </div>
-
-                    <button type="button" onClick={fetchBusInfo}>
-                      <img
-                        src="/refresh.svg"
-                        alt="새로고침"
-                        className="mt-[5px] h-[16px] w-[16px]"
-                      />
-                    </button>
                   </div>
 
                   <div className="mt-[10px] text-center">
