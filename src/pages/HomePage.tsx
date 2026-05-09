@@ -234,10 +234,8 @@ export default function HomePage() {
     const target = new Date(now);
     target.setHours(Number(hour), Number(minute), Number(second), 0);
 
-    const diffSeconds = Math.max(
-      0,
-      Math.ceil((target.getTime() - now.getTime()) / 1000),
-    );
+    const diffSeconds = Math.ceil((target.getTime() - now.getTime()) / 1000);
+    if (diffSeconds <= 0) return "지나감";
 
     const min = Math.floor(diffSeconds / 60);
     const sec = diffSeconds % 60;
