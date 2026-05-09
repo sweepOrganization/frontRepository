@@ -195,6 +195,11 @@ function splitBusNos(busNo?: string) {
     );
 }
 
+function normalizeBusDisplayName(name?: string) {
+  if (!name) return "";
+  return name.replace(/\(.*\)/, "").trim();
+}
+
 function toBusTypeByBusNo(segments: RouteSegment[]) {
   const map: Record<string, number> = {};
 
@@ -952,14 +957,14 @@ export default function RoutePage() {
                             {splitBusNos(segment.busNo).map((busNo) => (
                               <div
                                 key={`${index}-${busNo}`}
-                                className="grid grid-cols-[41px_1fr] items-center gap-2"
+                                className="grid grid-cols-[auto_1fr] items-center gap-2"
                               >
                                 <span
-                                  className={`inline-flex h-[22px] w-[41px] items-center justify-center rounded-[5px] px-2 py-[3px] text-center text-[13px] leading-[13px] font-semibold text-white ${getBusColorClass(
+                                  className={`inline-flex h-[22px] items-center justify-center rounded-[5px] px-[5px] py-[3px] text-center text-[13px] leading-[13px] font-semibold whitespace-nowrap text-white ${getBusColorClass(
                                     busTypeByBusNo[busNo] ?? segment.busType,
                                   )}`}
                                 >
-                                  {busNo}
+                                  {normalizeBusDisplayName(busNo)}
                                 </span>
                                 <div className="flex w-full items-center justify-center text-center">
                                   {(busArrivalsByBusNo[busNo] ?? [])
