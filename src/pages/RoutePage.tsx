@@ -41,6 +41,7 @@ type AvailableTrain = {
 };
 type ArrivingBus = {
   arrivalMessage?: string;
+  arrivalTimeSeconds?: number;
 };
 type SegmentBoardingInfo = {
   trafficType?: number;
@@ -364,6 +365,24 @@ function splitArrivalMessage(message: string) {
   return { firstLine, secondLine };
 }
 
+function formatRemainTime(seconds: number) {
+  const min = Math.floor(seconds / 60);
+  const sec = seconds % 60;
+  return `${min}분 ${sec}초`;
+}
+
+function isBusRateLimitedMessage(message: string) {
+  return (
+    message.includes("Key인증실패") ||
+    message.includes("LIMITED NUMBER OF SERVICE REQUESTS EXCEEDS")
+  );
+}
+
+function getBracketMessage(message: string) {
+  if (!message.includes("[")) return "";
+  return message.split("[")[1]?.replace("]", "").trim() ?? "";
+}
+
 export default function RoutePage() {
   const { alarmId } = useParams();
   const mapRef = useRef<HTMLDivElement | null>(null);
@@ -423,7 +442,7 @@ export default function RoutePage() {
       })
     : "";
 
-  const { data: detailRouteData } = useGetDetailRoute({
+  const { data: detailRouteData, dataUpdatedAt } = useGetDetailRoute({
     routeId: requestRouteId,
     type: requestType,
     startX: requestStartX,
@@ -460,20 +479,23 @@ export default function RoutePage() {
 
     return mapped;
   }, [detailRouteData, requestRouteSegments]);
-  const busArrivalMessagesByBusNo = useMemo(() => {
+  const busArrivalsByBusNo = useMemo(() => {
     const infos = toSegmentBoardingInfos(detailRouteData);
-    const mapped: Record<string, string[]> = {};
+    const mapped: Record<string, ArrivingBus[]> = {};
 
     infos.forEach((info) => {
       if (info.trafficType !== 2) return;
       const busNo = info.transportId?.trim();
       if (!busNo) return;
-      const messages =
-        info.arrivingBuses
-          ?.map((bus) => bus.arrivalMessage?.trim() ?? "")
-          .filter((message) => message.length > 0) ?? [];
-      if (messages.length === 0) return;
-      mapped[busNo] = messages;
+      const arrivals =
+        info.arrivingBuses?.filter((bus) => {
+          const message = bus.arrivalMessage?.trim() ?? "";
+          return (
+            message.length > 0 || typeof bus.arrivalTimeSeconds === "number"
+          );
+        }) ?? [];
+      if (arrivals.length === 0) return;
+      mapped[busNo] = arrivals;
     });
 
     return mapped;
@@ -888,14 +910,43 @@ export default function RoutePage() {
                                   {busNo}
                                 </span>
                                 <div className="flex w-full items-center justify-center text-center">
-                                  {(busArrivalMessagesByBusNo[busNo] ?? [])
+                                  {(busArrivalsByBusNo[busNo] ?? [])
                                     .slice(0, 1)
-                                    .map((message, messageIndex) => {
-                                      const { firstLine, secondLine } =
-                                        splitArrivalMessage(message);
-                                      const normalizedSecondLine = secondLine
-                                        .replace(/[[\]]/g, "")
-                                        .trim();
+                                    .map((bus, messageIndex) => {
+                                      const message =
+                                        bus.arrivalMessage?.trim() ?? "";
+                                      const elapsedSeconds =
+                                        dataUpdatedAt > 0
+                                          ? Math.floor(
+                                              (now.getTime() - dataUpdatedAt) /
+                                                1000,
+                                            )
+                                          : 0;
+                                      const liveSeconds =
+                                        typeof bus.arrivalTimeSeconds ===
+                                        "number"
+                                          ? Math.max(
+                                              0,
+                                              bus.arrivalTimeSeconds -
+                                                elapsedSeconds,
+                                            )
+                                          : null;
+                                      const isRateLimited =
+                                        isBusRateLimitedMessage(message);
+
+                                      const firstLine = isRateLimited
+                                        ? "실시간 조회가 일시 제한되었어요."
+                                        : typeof liveSeconds === "number" &&
+                                            liveSeconds > 0
+                                          ? formatRemainTime(liveSeconds)
+                                          : message.length > 0
+                                            ? splitArrivalMessage(message)
+                                                .firstLine
+                                            : "운행정보 없음";
+
+                                      const secondLine = isRateLimited
+                                        ? "잠시 후 다시 시도해주세요."
+                                        : getBracketMessage(message);
 
                                       return (
                                         <span
@@ -905,9 +956,9 @@ export default function RoutePage() {
                                           <span className="font-bold text-[#EF4444]">
                                             {firstLine}
                                           </span>
-                                          {normalizedSecondLine ? (
+                                          {secondLine ? (
                                             <span className="ml-2 text-(--Darkgray)">
-                                              {normalizedSecondLine}
+                                              {secondLine}
                                             </span>
                                           ) : null}
                                         </span>
