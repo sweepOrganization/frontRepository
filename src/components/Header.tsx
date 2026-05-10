@@ -11,10 +11,10 @@ export default function Header() {
         onClick={() => navigate("/")}
       />
       <div className="flex items-center gap-[10px]">
-        <img src="/alarm.svg" alt="알람아이콘" className="h-[24px] w-[24px]" />
+        {/* <img src="/alarm.svg" alt="알람아이콘" className="h-[24px] w-[24px]" />
         <button className="rounded-[8px] border border-[#dddddd] px-[14px] py-[7px] text-(--Lightgray)">
           마이페이지
-        </button>
+        </button> */}
       </div>
     </div>
   );
