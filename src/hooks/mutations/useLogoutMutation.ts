@@ -8,8 +8,8 @@ export default function useLogoutMutation(callbacks?: UseMutationCallback) {
   return useMutation({
     mutationFn: logout,
     onSuccess: () => {
-      sessionStorage.removeItem("fcmToken");
-      localStorage.removeItem("accessToken");
+      localStorage.removeItem("fcmToken");
+      sessionStorage.removeItem("accessToken");
       navigate("/login", { replace: true });
       callbacks?.onSuccess?.();
     },

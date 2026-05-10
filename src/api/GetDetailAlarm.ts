@@ -1,5 +1,5 @@
 export async function getDetailAlarm({ alarmId }: { alarmId: number }) {
-  const accessToken = localStorage.getItem("accessToken");
+  const accessToken = sessionStorage.getItem("accessToken");
 
   const response = await fetch(
     `${import.meta.env.VITE_API_BASE_URL}/alarm/${alarmId}`,

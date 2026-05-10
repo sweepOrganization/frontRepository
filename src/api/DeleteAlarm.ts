@@ -1,6 +1,6 @@
 export async function deleteAlarm({ alarmId }: { alarmId: number }) {
   const baseUrl = import.meta.env.VITE_API_BASE_URL;
-  const accessToken = localStorage.getItem("accessToken");
+  const accessToken = sessionStorage.getItem("accessToken");
 
   const response = await fetch(`${baseUrl}/alarm/${alarmId}`, {
     method: "DELETE",

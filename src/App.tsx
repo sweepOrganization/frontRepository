@@ -15,7 +15,7 @@ import RoutePage from "./pages/RoutePage";
 import StartPage from "./pages/StartPage";
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
-  const token = localStorage.getItem("accessToken");
+  const token = sessionStorage.getItem("accessToken");
   if (!token) return <Navigate to="/login" replace />;
   return <>{children}</>;
 }

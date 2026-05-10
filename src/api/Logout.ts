@@ -1,7 +1,7 @@
 export async function logout() {
   const baseUrl = import.meta.env.VITE_API_BASE_URL;
-  const accessToken = localStorage.getItem("accessToken");
-  const fcmToken = sessionStorage.getItem("fcmToken");
+  const accessToken = sessionStorage.getItem("accessToken");
+  const fcmToken = localStorage.getItem("fcmToken");
 
   if (accessToken && fcmToken) {
     try {

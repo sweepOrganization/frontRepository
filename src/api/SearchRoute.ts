@@ -3,7 +3,7 @@ import { useAlarmStore } from "../stores/useAlarmStore";
 export type PathType = "PATH_TYPE_SUBWAY" | "PATH_TYPE_BUS";
 
 export async function searchRoute(pathType: PathType) {
-  const accessToken = localStorage.getItem("accessToken");
+  const accessToken = sessionStorage.getItem("accessToken");
   const { arrivalTime, startLat, startLon, endLat, endLon } =
     useAlarmStore.getState();
 
