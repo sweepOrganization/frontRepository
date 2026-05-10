@@ -58,6 +58,21 @@ export default function NotificationSetting5Page() {
         resetAlarm();
         navigate("/", { replace: true });
       },
+      onError: (error) => {
+        const status =
+          typeof error === "object" && error && "status" in error
+            ? (error as { status?: number }).status
+            : undefined;
+        const message =
+          error instanceof Error && error.message
+            ? error.message
+            : "알람 생성에 실패했습니다.";
+
+        window.alert(message);
+        if (status === 400) {
+          navigate("/notification-setting-1", { replace: true });
+        }
+      },
     });
 
   const isoMatch = arrivalTime.match(

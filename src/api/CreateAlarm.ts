@@ -103,7 +103,26 @@ export async function createAlarm() {
   });
 
   if (!response.ok) {
-    throw new Error("Failed to create alarm.");
+    let errorMessage = "Failed to create alarm.";
+
+    try {
+      const errorData = await response.json();
+      if (
+        errorData &&
+        typeof errorData === "object" &&
+        "msg" in errorData &&
+        typeof errorData.msg === "string" &&
+        errorData.msg.trim()
+      ) {
+        errorMessage = errorData.msg;
+      }
+    } catch {
+      // Keep default message when response body is not JSON.
+    }
+
+    const error = new Error(errorMessage) as Error & { status?: number };
+    error.status = response.status;
+    throw error;
   }
 
   const result = await response.json();
