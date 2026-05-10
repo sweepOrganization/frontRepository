@@ -15,7 +15,7 @@ function getActualTimeMinutes(edt: string, eta: string) {
 }
 
 export async function updateActualTime(alarmId: number) {
-  const accessToken = localStorage.getItem("accessToken");
+  const accessToken = sessionStorage.getItem("accessToken");
   const baseUrl = import.meta.env.VITE_API_BASE_URL;
   const { edt, eta } = useAlarmStore.getState();
 

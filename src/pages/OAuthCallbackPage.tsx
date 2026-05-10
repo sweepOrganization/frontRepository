@@ -8,10 +8,10 @@ export default function OAuthCallbackPage() {
     const tokenFromQuery = new URLSearchParams(window.location.search).get(
       "token",
     );
-    const tokenFromStorage = localStorage.getItem("accessToken");
+    const tokenFromStorage = sessionStorage.getItem("accessToken");
 
     if (tokenFromQuery) {
-      localStorage.setItem("accessToken", tokenFromQuery);
+      sessionStorage.setItem("accessToken", tokenFromQuery);
       navigate("/", { replace: true });
       return;
     }

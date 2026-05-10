@@ -17,7 +17,7 @@ export async function getDetailRoute({
   endLon,
   arrivalTime,
 }: GetDetailRouteParams) {
-  const accessToken = localStorage.getItem("accessToken");
+  const accessToken = sessionStorage.getItem("accessToken");
 
   if (!import.meta.env.VITE_API_BASE_URL) {
     throw new Error("VITE_API_BASE_URL이 설정되지 않았습니다.");

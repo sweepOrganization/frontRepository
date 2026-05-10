@@ -48,7 +48,7 @@ function toStartTimeFromEdt(
 }
 
 export async function createAlarm() {
-  const accessToken = localStorage.getItem("accessToken");
+  const accessToken = sessionStorage.getItem("accessToken");
   const {
     routeId,
     title,
