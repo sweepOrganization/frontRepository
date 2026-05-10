@@ -1,5 +1,5 @@
 export const postFcmToken = async (token: string) => {
-  const accessToken = localStorage.getItem("accessToken");
+  const accessToken = sessionStorage.getItem("accessToken");
   if (!accessToken) {
     throw new Error("액세스 토큰을 찾을 수 없습니다.");
   }

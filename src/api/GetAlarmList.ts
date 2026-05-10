@@ -1,5 +1,5 @@
 export async function getAlarmList() {
-  const accessToken = localStorage.getItem("accessToken");
+  const accessToken = sessionStorage.getItem("accessToken");
 
   if (!accessToken) {
     throw new Error("accessToken is missing.");

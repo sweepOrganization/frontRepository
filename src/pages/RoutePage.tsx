@@ -612,7 +612,7 @@ export default function RoutePage() {
     let cancelled = false;
 
     (async () => {
-      const accessToken = localStorage.getItem("accessToken");
+      const accessToken = sessionStorage.getItem("accessToken");
       if (!accessToken) {
         throw new Error("accessToken is missing.");
       }
