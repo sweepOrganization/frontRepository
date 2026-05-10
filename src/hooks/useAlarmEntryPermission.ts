@@ -50,7 +50,7 @@ export default function useAlarmEntryPermission() {
       };
     }
 
-    const isSameToken = localStorage.getItem(FCM_TOKEN_STORAGE_KEY) === token;
+    const isSameToken = sessionStorage.getItem(FCM_TOKEN_STORAGE_KEY) === token;
     if (!isSameToken) {
       const isPosted = await postFcmToken(token)
         .then(() => true)
@@ -64,7 +64,7 @@ export default function useAlarmEntryPermission() {
         };
       }
 
-      localStorage.setItem(FCM_TOKEN_STORAGE_KEY, token);
+      sessionStorage.setItem(FCM_TOKEN_STORAGE_KEY, token);
     }
 
     setIsCheckingPermission(false);
