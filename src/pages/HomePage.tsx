@@ -3,9 +3,9 @@ import { useNavigate } from "react-router-dom";
 import DeleteModal from "../components/HomePage/DeleteModal";
 import Duck from "../components/HomePage/Duck";
 import useLogoutMutation from "../hooks/mutations/useLogoutMutation";
-import useAlarmEntryPermission from "../hooks/useAlarmEntryPermission";
 import useGetAlarmList from "../hooks/queries/useGetAlarmList";
 import useGetDetailRoute from "../hooks/queries/useGetDetailRoute";
+import useAlarmEntryPermission from "../hooks/useAlarmEntryPermission";
 
 type Alarm = {
   alarmId: number;
