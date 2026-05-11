@@ -63,6 +63,15 @@ textarea {
   --bus-red: #ff5b5b; /* 광역버스 */
   --bus-gray: #505050; /* 공항/일반/기타 */
   --bus-sky: #65a6d2; /* 마을버스 */
+  --bus-purple: #7b1fa2;
+  --bus-slate: #607d8b;
+  --bus-amber: #f9a825;
+  --bus-orange: #ff8c00;
+  --bus-violet: #8e44ad;
+  --bus-lime: #7cb342;
+  --bus-dark-red: #b71c1c;
+  --bus-deep-purple: #6a1b9a;
+  --bus-cyan: #00a6b4;
 
   /* 폰트컬러 */
   --White: #fcfcfc;
