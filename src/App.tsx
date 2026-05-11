@@ -1,7 +1,9 @@
+import { useEffect, useState } from "react";
 import { Navigate, Route, Routes } from "react-router-dom";
 import "./App.css";
-import BackHeader from "./components/BackHeader";
-import Header from "./components/Header";
+import BackHeader from "./components/common/BackHeader";
+import Header from "./components/common/Header";
+import Splash from "./components/common/Splash";
 import FcmAutoRegistration from "./components/fcm/FcmAutoRegistration";
 import HomePage from "./pages/HomePage";
 import LoginPage from "./pages/LoginPage";
@@ -43,6 +45,32 @@ function WithBackHeader({ children }: { children: React.ReactNode }) {
 }
 
 function App() {
+  const [isMinSplashElapsed, setIsMinSplashElapsed] = useState(false);
+  const [isAppLoaded, setIsAppLoaded] = useState(
+    document.readyState === "complete",
+  );
+
+  useEffect(() => {
+    const timerId = window.setTimeout(() => {
+      setIsMinSplashElapsed(true);
+    }, 3000);
+
+    const handleLoaded = () => {
+      setIsAppLoaded(true);
+    };
+
+    if (!isAppLoaded) {
+      window.addEventListener("load", handleLoaded);
+    }
+
+    return () => {
+      window.clearTimeout(timerId);
+      window.removeEventListener("load", handleLoaded);
+    };
+  }, [isAppLoaded]);
+
+  if (!(isMinSplashElapsed && isAppLoaded)) return <Splash />;
+
   return (
     <>
       <FcmAutoRegistration />
