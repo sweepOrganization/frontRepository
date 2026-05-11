@@ -1,5 +1,6 @@
 ﻿import { useParams } from "react-router-dom";
 import RouteDetailSection from "../components/route/RouteDetailSection";
+import RoutePageFallback from "../components/route/RoutePageFallback";
 import RoutePreviewSection from "../components/route/RoutePreviewSection";
 import RouteSummaryCard from "../components/route/RouteSummaryCard";
 import useGetDetailAlarm from "../hooks/queries/useGetDetailAlarm";
@@ -61,7 +62,7 @@ export default function RoutePage() {
     typeof requestArrivalTime === "string" &&
     requestArrivalTime.length > 0;
 
-  if (isLoading) return <div>불러오는 중...</div>;
+  if (isLoading) return <RoutePageFallback />;
 
   return (
     <div className="flex h-screen flex-col overflow-hidden">
