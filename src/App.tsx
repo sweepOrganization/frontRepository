@@ -45,16 +45,15 @@ function WithBackHeader({ children }: { children: React.ReactNode }) {
 }
 
 function App() {
-  const [isMinSplashElapsed, setIsMinSplashElapsed] = useState(false);
+  const [isMinSplashElapsed, setIsMinSplashElapsed] = useState(() => {
+    if (typeof window === "undefined") return false;
+    return sessionStorage.getItem("hasSeenSplash") === "true";
+  });
   const [isAppLoaded, setIsAppLoaded] = useState(
     document.readyState === "complete",
   );
 
   useEffect(() => {
-    const timerId = window.setTimeout(() => {
-      setIsMinSplashElapsed(true);
-    }, 3000);
-
     const handleLoaded = () => {
       setIsAppLoaded(true);
     };
@@ -64,10 +63,22 @@ function App() {
     }
 
     return () => {
-      window.clearTimeout(timerId);
       window.removeEventListener("load", handleLoaded);
     };
   }, [isAppLoaded]);
+
+  useEffect(() => {
+    if (isMinSplashElapsed) return;
+
+    const timerId = window.setTimeout(() => {
+      setIsMinSplashElapsed(true);
+      sessionStorage.setItem("hasSeenSplash", "true");
+    }, 3000);
+
+    return () => {
+      window.clearTimeout(timerId);
+    };
+  }, [isMinSplashElapsed]);
 
   if (!(isMinSplashElapsed && isAppLoaded)) return <Splash />;
 
